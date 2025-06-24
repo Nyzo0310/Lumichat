@@ -1,0 +1,17 @@
+version: "3.1"
+
+rules:
+- rule: Handle greetings
+  steps:
+    - intent: greet
+    - action: utter_greet
+
+- rule: Respond to stress
+  steps:
+    - intent: feeling_stressed
+    - action: utter_feeling_stressed
+
+- rule: Refer user to counselor
+  steps:
+    - intent: seek_counseling
+    - action: utter_seek_counseling

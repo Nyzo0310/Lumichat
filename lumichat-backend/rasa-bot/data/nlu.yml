@@ -1,0 +1,27 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - hi
+    - hello
+    - hey
+    - good morning
+    - good evening
+
+- intent: feeling_stressed
+  examples: |
+    - I'm feeling overwhelmed
+    - I’m feeling overwhelmed
+    - I'm having trouble sleeping due to stress
+    - I feel anxious
+    - School is stressing me out
+    - I'm mentally tired
+    - I can't focus anymore
+
+- intent: seek_counseling
+  examples: |
+    - Can I talk to a counselor?
+    - I need to speak with someone
+    - I want a referral
+    - Please connect me to a counselor

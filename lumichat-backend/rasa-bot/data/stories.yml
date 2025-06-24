@@ -1,0 +1,24 @@
+version: "3.1"
+
+stories:
+
+- story: greeting and response
+  steps:
+    - intent: greet
+    - action: utter_greet
+
+- story: stressed message
+  steps:
+    - intent: feeling_stressed
+    - action: utter_feeling_stressed
+
+- story: refer to counselor
+  steps:
+    - intent: seek_counseling
+    - action: utter_seek_counseling
+    
+- story: greet path
+  steps:
+  - intent: greet
+  - action: utter_greet
+

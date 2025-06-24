@@ -1,0 +1,20 @@
+version: "3.1"
+
+intents:
+  - greet
+  - feeling_stressed
+  - seek_counseling
+
+responses:
+  utter_greet:
+  - text: "Hello! How can I support you today?"
+
+  utter_feeling_stressed:
+    - text: "It's okay to feel overwhelmed. Would you like to talk to a counselor or try some calming exercises?"
+
+  utter_seek_counseling:
+    - text: "I can connect you with a counselor. Can I schedule an appointment for you?"
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
