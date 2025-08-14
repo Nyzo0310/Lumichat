@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Registration extends Model
 {
-    use HasFactory;
-
     protected $table = 'tbl_registration';
 
     protected $fillable = [
@@ -17,7 +14,8 @@ class Registration extends Model
         'contact_number',
         'course',
         'year_level',
-        'password',
+        'password', // (present in your table; not used here)
     ];
-}
 
+    public $timestamps = true; // you have created_at / updated_at
+}

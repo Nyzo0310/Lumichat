@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Registration;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,25 +17,51 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+
+        // Find the registration row by email OR full name (covers mismatch)
+        $registration = Registration::query()
+            ->where('email', $user->email)
+            ->orWhere('full_name', $user->name)
+            ->first();
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user'         => $user,
+            'registration' => $registration,
         ]);
     }
 
     /**
      * Update the user's profile information.
+     * - Updates users.name / users.email
+     * - Upserts tbl_registration (full_name/email + course/year_level/contact_number)
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Update Users table
+        $user->fill($request->validated());
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
+        $user->save();
 
-        $request->user()->save();
+        // Sync to tbl_registration
+        Registration::updateOrCreate(
+            // Key: prefer email; also keep a fallback on full_name
+            ['email' => $user->email],
+            [
+                'full_name'      => $user->name,
+                'email'          => $user->email,
+                'course'         => $request->input('course'),
+                'year_level'     => $request->input('year_level'),
+                'contact_number' => $request->input('contact_number'),
+            ]
+        );
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route('profile.edit')->with('profile_updated', true);
     }
 
     /**
@@ -49,6 +76,9 @@ class ProfileController extends Controller
         $user = $request->user();
 
         Auth::logout();
+
+        // Optionally also delete from tbl_registration:
+        // Registration::where('email', $user->email)->orWhere('full_name', $user->name)->delete();
 
         $user->delete();
 

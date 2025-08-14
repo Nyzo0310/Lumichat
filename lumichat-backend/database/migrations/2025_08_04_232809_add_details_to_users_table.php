@@ -4,28 +4,18 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
+return new class extends Migration {
+    public function up(): void {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('contact_number')->nullable();
-            $table->string('course')->nullable();
-            $table->string('year_level')->nullable();
+            if (!Schema::hasColumn('users', 'course'))          $table->string('course')->nullable()->after('email');
+            if (!Schema::hasColumn('users', 'year_level'))      $table->string('year_level')->nullable()->after('course');
+            if (!Schema::hasColumn('users', 'contact_number'))  $table->string('contact_number', 32)->nullable()->after('year_level');
         });
-
     }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
+    public function down(): void {
         Schema::table('users', function (Blueprint $table) {
-            //
+            $table->dropColumn(['course','year_level','contact_number']);
         });
     }
 };
+
