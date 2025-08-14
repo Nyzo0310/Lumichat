@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ApiChatController extends Controller
 {
@@ -12,21 +13,25 @@ class ApiChatController extends Controller
     {
         $request->validate(['message' => 'required|string|max:1000']);
 
-        // Replace with your actual Rasa server URL
         $rasaUrl = 'http://localhost:5005/webhooks/rest/webhook';
 
-        $response = Http::post($rasaUrl, [
-            'sender' => $request->user()->id,
-            'message' => $request->message,
-        ]);
+        try {
+            $response = Http::post($rasaUrl, [
+                'sender' => $request->user()->id,
+                'message' => $request->message,
+            ]);
 
-        $botMessages = collect($response->json())
-                        ->pluck('text')
-                        ->filter()
-                        ->values();
+            $botMessages = collect($response->json())
+                            ->pluck('text')
+                            ->filter()
+                            ->values();
 
-        return response()->json([
-            'bot_reply' => $botMessages
-        ]);
+            return response()->json([
+                'bot_reply' => $botMessages
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error sending message to Rasa:', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Something went wrong.'], 500);
+        }
     }
 }

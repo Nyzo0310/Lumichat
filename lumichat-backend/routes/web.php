@@ -3,40 +3,39 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\SettingController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 
+// Default redirect
 Route::get('/', function () {
-    return redirect()->route('chat.show');
+    return redirect()->route('chat.index');
 });
 
-// Protected routes
+// ✅ Registration routes — accessible to guests
+Route::get('/register', [RegisteredUserController::class, 'create'])
+    ->middleware('guest')
+    ->name('register');
+
+Route::post('/register', [RegisteredUserController::class, 'store'])
+    ->middleware('guest');
+
+// ✅ Authenticated routes
 Route::middleware('auth')->group(function () {
-
-    // Chat routes
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-    Route::post('/api/chat', [ChatController::class, 'store'])->name('chat.store');
-    Route::post('/chat/greet', [ChatController::class, 'greet'])->name('chat.greet');
-    Route::post('/chat', [ChatController::class, 'store'])->name('chat.store'); // Used for saving messages
     Route::get('/chat/new', [ChatController::class, 'newChat'])->name('chat.new');
-
-    // Chat History UI route (to be implemented)
     Route::get('/chat/history', [ChatController::class, 'history'])->name('chat.history');
-    Route::delete('/chat/{id}', [ChatController::class, 'destroy'])->name('chat.delete');
+    Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
+    Route::get('/chat/view/{id}', [ChatController::class, 'viewSession'])->name('chat.view');
+    Route::delete('/chat/session/{id}', [ChatController::class, 'deleteSession'])->name('chat.deleteSession');
 
-    // Profile route
+    // Profile
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-
-    // Appointments page (optional)
-    Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments');
-
-    // Settings page (optional)
-    Route::get('/settings', [SettingController::class, 'index'])->name('settings');
-
-    // Logout is handled by POST form in Blade via Auth scaffolding
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-/* -----------------------------------------------------------------
-|  Laravel Breeze / Fortify auth routes
-|------------------------------------------------------------------*/
+
+Route::get('/privacy-policy', function () {
+    return view('privacy-policy');
+})->name('privacy.policy');
+
+// ✅ Default auth routes (login, logout, etc.)
 require __DIR__.'/auth.php';

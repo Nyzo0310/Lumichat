@@ -1,17 +1,32 @@
 version: "3.1"
-
 rules:
-- rule: Handle greetings
-  steps:
-    - intent: greet
-    - action: utter_greet
 
-- rule: Respond to stress
-  steps:
-    - intent: feeling_stressed
-    - action: utter_feeling_stressed
+  - rule: Greet user
+    steps:
+      - intent: greet
+      - action: utter_greet
 
-- rule: Refer user to counselor
-  steps:
-    - intent: seek_counseling
-    - action: utter_seek_counseling
+  - rule: Prompt more help
+    steps:
+      - intent: need_more_help
+      - action: utter_ask_need_more_help
+
+  - rule: Escalate to counselor
+    steps:
+      - intent: confirm_more_help
+      - action: utter_offer_counselor
+
+  - rule: Respond to thanks
+    steps:
+      - intent: thanks
+      - action: utter_thanks
+
+  - rule: Say goodbye
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
+
+  - rule: Default fallback
+    steps:
+      - intent: out_of_scope
+      - action: utter_fallback

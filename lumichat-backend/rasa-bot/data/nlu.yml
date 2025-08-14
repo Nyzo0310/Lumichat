@@ -1,27 +1,454 @@
 version: "3.1"
-
 nlu:
-- intent: greet
-  examples: |
-    - hi
-    - hello
-    - hey
-    - good morning
-    - good evening
+  - intent: greet
+    examples: |
+      - hi
+      - hello
+      - hey
+      - good morning
+      - good afternoon
+      - good evening
+      - what's up
+      - sup
+      - yo
+      - hi there
+      - hello bot
+      - hey LumiCHAT
+      - kumusta
+      - oi
+      - musta na
+      - musta bro
+      - kumusta ka
+      - maayo nga buntag
+      - maayo hapon
+      - maayong gabii
 
-- intent: feeling_stressed
-  examples: |
-    - I'm feeling overwhelmed
-    - I’m feeling overwhelmed
-    - I'm having trouble sleeping due to stress
-    - I feel anxious
-    - School is stressing me out
-    - I'm mentally tired
-    - I can't focus anymore
+  - intent: goodbye
+    examples: |
+      - bye
+      - goodbye
+      - sakto nato
+      - sakto nani
+      - see you
+      - talk to you later
+      - thanks, bye
+      - see ya
+      - see you next time
+      - I'm leaving now
+      - catch you later
+      - amping
+      - mag-una ko
+      - balik lang unya
+      - sige, amping
+      - babay
+      - ok na ko
+      - salamat, bye
+      - mao rato salamat
 
-- intent: seek_counseling
-  examples: |
-    - Can I talk to a counselor?
-    - I need to speak with someone
-    - I want a referral
-    - Please connect me to a counselor
+  - intent: affirm
+    examples: |
+      - yes
+      - yeah
+      - yep
+      - of course
+      - definitely
+      - sure
+      - absolutely
+      - I do
+      - okay
+      - right
+      - oo
+      - oo, gusto ko
+      - sakto
+      - tinuod
+      - sige
+      - gusto ko ana
+
+  - intent: deny
+    examples: |
+      - no
+      - nope
+      - nah
+      - not really
+      - don't think so
+      - no, thank you
+      - dili
+      - ayaw lang
+      - ayaw na
+      - wala
+      - dili ko
+      - dili ko gusto
+
+
+  - intent: mood_unhappy
+    examples: |
+      - I'm feeling sad
+      - I feel so down
+      - I'm not happy
+      - I'm just not okay
+      - I've been crying
+      - I feel hopeless
+      - Life feels heavy
+      - I can't smile anymore
+      - I'm just not myself lately
+      - naguol ko
+      - subo kaayo ko karon
+      - wa ko ganahi sa akong gibati
+      - murag bug-at akong pamati
+      - naghilak ko
+      - naglisod kog lingaw
+      - sige lang kog hunahuna og bati
+
+  - intent: mood_anxious
+    examples: |
+      - I'm feeling anxious
+      - I'm worried all the time
+      - I keep overthinking
+      - I can't relax
+      - My mind is racing
+      - I feel panic sometimes
+      - I'm on edge
+      - I feel nervous a lot
+      - sige ko kabalaka
+      - permi lang ko naguol
+      - permi lang ko guol
+      - permi lang ko maguol
+      - dali ra ko mabalaka
+      - ga-kulbaan ko pirmi
+      - kulbaan ko pirmi
+      - di ko kahilom ang utok
+      - usahay magpanic ko
+
+  - intent: academic_stress
+    examples: |
+      - I'm stressed about school
+      - School is overwhelming
+      - There’s so much homework
+      - I can't keep up with my classes
+      - My grades are slipping
+      - Too many assignments
+      - Daghan kaayu assignments
+      - I have too many deadlines
+      - naglisod ko sa school
+      - daghan kaayo requirements
+      - bug-at kaayo ang school work
+      - grabe ang projects karon
+      - deadline na sad
+      - wala nako matuman tanan tasks
+      - usahay ganahan ko mo-give up sa klase
+      - gusto nako mo undang skwela
+      -  daghan kaayu buhatonon sa school
+
+  - intent: low_self_esteem
+    examples: |
+      - I have low self-esteem
+      - I feel worthless
+      - I don't believe in myself
+      - I have no confidence
+      - I always compare myself to others
+      - I don’t like myself
+      - dili ko confident
+      - kulang kog pagsalig sa akong sarili
+      - wala koy salig saakong kaugalingon
+      - wala koy salig saakong self
+      - murag di ko maayo
+      - bati akong feeling sa akong kaugalingon
+      - bati kaayo kog tan-aw sa akong self
+      - permi lang ko nag-compare sa uban
+
+  - intent: loneliness
+    examples: |
+      - I feel lonely
+      - I have no one to talk to
+      - I feel left out
+      - No one understands me
+      - I feel isolated
+      - I don't have friends
+      - walay maminaw nako
+      - wa koy kauban pirmi
+      - inusara ra kaayo ko
+      - murag walay nag-care nako
+      - lahi akong feeling basta mag-inusara
+
+  - intent: relationship_issues
+    examples: |
+      - I have relationship problems
+      - My partner broke up with me
+      - My friends and I are fighting
+      - I lost a friend
+      - My relationship ended
+      - I feel heartbroken
+      - nagbuwag mi sa akong uyab
+      - nag-away mi sa akong amiga
+      - gipili siya kaysa nako
+      - wala na koy kadungan
+      - sakit akong heart
+
+  - intent: family_issues
+    examples: |
+      - I'm having problems with my family
+      - My parents don't get me
+      - My family keeps fighting
+      - I don't feel supported at home
+      - There's always tension at home
+      - nag-away among pamilya
+      - kasabot ba ka kung permi lang maglalis sa balay
+      - mura kog walay suporta sa among balay
+      - pirmi lang mi kasaba
+
+  - intent: burnout
+    examples: |
+      - I'm burned out
+      - I have no motivation left
+      - I feel so tired
+      - I'm exhausted
+      - I can't do anything anymore
+      - gikapoy nako
+      - di na ko ganahan mo padayon
+      - murag wala nay gana
+      - wala na koy kusog
+      - sobra na ka-kapoy
+
+  - intent: suicidal_thoughts
+    examples: |
+      - I want to end my life
+      - I'm thinking of suicide
+      - I wish I was gone
+      - I want to hurt myself
+      - I don't want to live anymore
+      - Life isn’t worth it
+      - Sometimes I think about dying
+      - usahay ganahan nako mo-undang tanan
+      - gusto nako mawala
+      - gusto nako mamatay
+      - permi ko maghunahuna og daotan
+      - mura wala nay pulos ang tanan
+      - gusto na ko mag hikog
+
+  - intent: bullying
+    examples: |
+      - I'm being bullied
+      - Someone keeps picking on me
+      - People are mean to me at school
+      - I get threatened by classmates
+      - I’m afraid of going to school because of bullies
+      - sige ko bugalbugalon sa klase
+      - pirmi ko daoton sa uban
+      - naay sigeg yawyaw nako
+      - gikuyawan ko kung naay bully
+      - gi bully ko nila
+
+  - intent: homesickness
+    examples: |
+      - I miss my home
+      - I feel homesick
+      - I want to go back home
+      - I can't adjust here
+      - I miss my family
+      - mingaw na kaayo ko sa balay
+      - gusto nako mo uli
+      - mingaw ko sa akong pamilya
+      - lahi ra jud diri sa balay
+
+  - intent: body_image
+    examples: |
+      - I hate my body
+      - I feel ugly
+      - I don't like how I look
+      - People make fun of my appearance
+      - I'm ashamed of my body
+      - bati akong lawas
+      - pangit akong lawas
+      - uwaw ko sa akong hitsura
+      - ulaw ko sa akong hitsura
+      - pirme ko tiktikan sa uban
+      - di ko ganahan sa akong nawong
+      - pangit ko
+
+  - intent: grief
+    examples: |
+      - I lost someone I love
+      - Someone close to me passed away
+      - It’s hard to accept their loss
+      - I feel so empty after losing them
+      - namatyan ko
+      - mingaw kaayo ko sa akong mahal
+      - lisod kaayo nga mawala siya
+      - pirme ko maghinumdom sa iya
+      - I’m grieving right now
+      - My friend just died
+      - My pet died
+      - It’s hard to accept their loss
+      - I feel so empty after losing them
+      - I keep remembering them
+      - Life hasn’t been the same since they left
+      - I can’t move on from their passing
+      - I still cry for them sometimes
+      - Losing someone hurts so much
+      - I miss my grandma
+      - I miss my grandfather
+      - I lost a family member
+      - It’s hard to go on after a loss
+      - I don’t know how to deal with grief
+      - I feel like a part of me is missing
+      - My world changed when they left
+      - My classmate died recently
+
+      - namatyan ko
+      - lisod kaayo nga mawala siya
+      - sakit kaayo ang pagkawala sa akong mahal
+      - namatyan mi sa among pamilya
+      - pirme ko maghinumdom niya
+      - mingaw ko sa akong lola
+      - mingaw ko sa akong lolo
+      - wa pa gihapon ko ka-move on sa iyang pagkamatay
+      - naghilak ko tungod kay mingaw na kaayo ko niya
+      - murag kulang na akong kinabuhi pagkahuman niya mibiya
+      - naglisod ko og sabut nganong siya ang nawala
+      - pirme ko maguol basta maghisgot mi niya
+      - nag-antos ko karon kay mingaw kaayo siya
+      - di nako kabalo unsaon pag-atubang ani nga kasubo
+      - akong amigo bag-o lang namatay
+      - nawala akong iro/iring, sakit gihapon para nako
+      - mingaw ko sa akong magulang
+      - bisan dugay na, sakit gihapon ang pagkawala niya
+
+  - intent: peer_pressure
+    examples: |
+      - I’m pressured to do things I don’t want
+      - My friends want me to try things I’m not comfortable with
+      - I can’t say no to my group
+      - I do things just to fit in
+      - naay ga-pressure nako
+      - pressure kaayu ko
+      - di ko ganahan pero napugos rako
+      - lisod balibaran ang barkada
+      - gusto ko mobarog para sa akong self
+
+  - intent: overthinking
+    examples: |
+      - I keep overthinking everything
+      - My mind won't stop
+      - I can't get rid of my worries
+      - I overthink even small things
+      - sige ko huna-huna
+      - sige ko overthink
+      - di ko kahunong og kabalaka
+      - usahay gamay ra pero bug-at na sa pamati
+
+  - intent: sleep_problems
+    examples: |
+      - I can't sleep at night
+      - I have trouble falling asleep
+      - I keep waking up in the middle of the night
+      - I have nightmares
+      - My sleep schedule is ruined
+      - di ko katulog
+      - sayo ra ko mamatngon
+      - sige ko damgo og bati
+      - permi ra ko kapoy kay kulang og tulog
+
+  - intent: time_management
+    examples: |
+      - I can't manage my time well
+      - I always procrastinate
+      - I can’t finish my tasks on time
+      - My schedule is all over the place
+      - I want to improve my time management
+      - pirme ko late
+      - di ko kahuman og task
+      - wa koy tarong nga schedule
+
+  - intent: thanks
+    examples: |
+      - thank you
+      - thanks
+      - I appreciate your help
+      - that's helpful
+      - thank you so much
+      - salamat
+      - daghang salamat
+      - salamat kaayo
+      - appreciate kaayo tika
+
+  - intent: need_more_help
+    examples: |
+      - I need more help
+      - Can you give more advice?
+      - What else can I do?
+      - I want to talk more
+      - tabangi pa ko
+      - gusto ko og dugang advice
+      - unsa pa akong buhaton?
+      - daghan pa kog gusto istoryahan
+
+  - intent: want_to_talk_counselor
+    examples: |
+      - I want to talk to a real counselor
+      - Can I talk to someone in person?
+      - I need face-to-face counseling
+      - I need to talk to a counselor
+      - I want to set an appointment
+      - gusto ko makigkita sa counselor
+      - gusto ko makigstorya sa counselor
+      - pwede ko makig-istorya sa guidance?
+      - tabangi ko og schedule sa guidance office
+      - tabangi ko magpa schedule sa guidance office
+      - kinahanglan gyud ko ug professional
+      - kinahanglan gyud ko ug tabang
+
+  - intent: out_of_scope
+    examples: |
+      - What’s the weather?
+      - Tell me a joke
+      - Who won the game?
+      - Can you cook?
+      - Random question ra ni
+      - walay labot akong gipangutana
+      - dili ni about mental health
+      - What's the weather today?
+      - Who is the president of the Philippines?
+      - Tell me a joke
+      - What time is it?
+      - How do I cook adobo?
+      - Can you solve math problems?
+      - Who won the basketball game?
+      - Unsay capital sa Japan?
+      - Magkano na ang sibuyas?
+      - Wala ko kasabot, unsa ni nga chat?
+      - Moapil ko og ML tournament, tabangi ko?
+      - Palihug ko og answer sa akong assignment sa science
+      - Pwede ko mangutang nimo?
+      - Maminaw ka og K-pop?
+      - Do you like BTS?
+      - Tagpila na ang gasolina ron?
+      - Unsaon pagkuha og NBI clearance?
+      - Naa kay promo code para Shopee?
+      - Favorite nimo nga color?
+      - Have you watched the latest movie?
+      - Pwede ko magpa-load nimo?
+      - Asa dapit ang SM Mall?
+      - Do you have a girlfriend?
+      - Bisaya ka?
+      - Are you AI?
+      - Kinsa imong creator?
+      - Unsa imong course?
+      - Di ko ganahan og math, ngano kinahanglan pa?
+      - Palihug og tagna pila ko ka tuig?
+      - Who’s your celebrity crush?
+      - What does the fox say?
+      - Maminaw ka og Bisaya songs?
+      - Asa dapit ang Cebu?
+      - Unsa imong paborito nga pagkaon?
+      - Can you rap?
+      - Libre ba ka maghatag og snacks?
+      - Show me a meme
+      - Sige kag smile ai
+      - Do you play Mobile Legends?
+      - Can you send money?
+      - Naa kay tips unsaon pagdaug sa lotto?
+      - Kinsa imong favorite teacher?
+      - Do you know how to dance?
+      - Can you help me with my crush?
+      - Unsa imong hight?
+      - Pwede ka magtagalog?

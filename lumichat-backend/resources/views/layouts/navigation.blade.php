@@ -6,7 +6,7 @@
             <!-- Left: App nav controls -->
             <div class="flex items-center space-x-4">
                 <!-- Hamburger toggler (only when sidebar is hidden) -->
-                <button onclick="toggleSidebar()" class="sidebar-open-btn">
+                <button onclick="toggleSidebar()" class="sidebar-open-btn"> 
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
                          viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round"

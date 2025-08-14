@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Registration;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
@@ -31,21 +32,30 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'full_name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:tbl_registration,email'],
+            'contact_number' => ['required', 'string', 'max:20'],
+            'course' => ['required', 'string'],
+            'year_level' => ['required', 'string'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+        Registration::create([
+            'full_name'      => $request->full_name,
+            'email'          => $request->email,
+            'contact_number' => $request->contact_number,
+            'course'         => $request->course,
+            'year_level'     => $request->year_level,
+            'password'       => Hash::make($request->password),
         ]);
 
-        event(new Registered($user));
-
-        Auth::login($user);
-
-        return redirect(RouteServiceProvider::HOME);
+        User::create([
+            'name'     => $request->full_name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+        
+        return redirect()->route('login')->with('success', 'Your account has been created!');
     }
+
 }
