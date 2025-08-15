@@ -6,14 +6,14 @@
 
 <div class="chat-container relative">
 
-  <!-- 🎉 Welcome Overlay (UNCHANGED) -->
+  {{-- Greeting Overlay --}}
   <div id="greeting-overlay"
        class="fixed inset-0 bg-gradient-to-br from-purple-600 via-violet-500 to-indigo-500
               flex flex-col items-center justify-center text-white z-50 px-4
               animate__animated animate__fadeIn">
 
     <a href="{{ route('profile.edit') }}"
-      class="absolute top-4 left-4 z-[60] flex items-center gap-2 px-4 py-2
+       class="absolute top-4 left-4 z-[60] flex items-center gap-2 px-4 py-2
               bg-white/20 backdrop-blur-sm border border-white/30 rounded-full
               hover:bg-white/30 transition text-sm text-white shadow-sm">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -40,14 +40,14 @@
     <form id="greeting-form" class="w-full max-w-md mx-auto" onsubmit="return false;">
       <div class="relative">
         <input id="greeting-input" type="text"
-              placeholder="Type a feeling or question..."
-              class="w-full py-4 pl-5 pr-28 rounded-full text-gray-900 text-base
+               placeholder="Type a feeling or question..."
+               class="w-full py-4 pl-5 pr-28 rounded-full text-gray-900 text-base
                       shadow-lg focus:outline-none focus:ring-2 focus:ring-white/80
                       placeholder:text-gray-700 bg-white/90"/>
         <button id="greeting-send" type="button"
                 class="absolute top-1/2 right-2 -translate-y-1/2
-                      px-5 py-2 rounded-full text-white text-sm font-medium
-                      bg-indigo-500 disabled:bg-indigo-400/60 hover:bg-indigo-600 transition shadow">
+                       px-5 py-2 rounded-full text-white text-sm font-medium
+                       bg-indigo-500 disabled:bg-indigo-400/60 hover:bg-indigo-600 transition shadow">
           Start
         </button>
       </div>
@@ -57,25 +57,19 @@
     </form>
   </div>
 
-  <!-- 💬 Chat Panel (DARK‑MODE READY) -->
+  {{-- Chat Panel --}}
   <div id="chat-wrapper"
        class="chat-panel card-shell rounded-xl overflow-hidden hidden animate__animated animate__slideInRight
               flex flex-col w-full max-w-[1040px] h-[calc(100vh-160px)]">
 
-    <!-- Header -->
     <div class="chat-header flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600
                 text-white px-5 py-3 rounded-t-xl shadow">
       <img src="{{ asset('images/chatbot.png') }}" class="w-6 h-6" alt="Bot">
       <strong class="text-lg">LumiCHAT Assistant</strong>
     </div>
 
-    <!-- Messages -->
     <div id="chat-messages"
          class="flex-1 min-h-0 flex flex-col gap-3 p-4 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-      <div id="loading-indicator"
-           class="self-start italic text-gray-500 dark:text-gray-400 hidden animate__animated animate__fadeIn">
-        Typing...
-      </div>
 
       @foreach ($chats as $chat)
         @php($mine = $chat->sender !== 'bot')
@@ -92,7 +86,6 @@
       @endforeach
     </div>
 
-    <!-- Input bar -->
     <form id="chat-form" class="flex items-center gap-2 px-4 py-3 border-t bg-white dark:bg-gray-800 dark:border-gray-700">
       @csrf
       <div class="group flex-1 flex items-center rounded-full bg-white dark:bg-gray-800
@@ -118,48 +111,42 @@
 @push('scripts')
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const overlay      = document.getElementById('greeting-overlay');
-  const chatWrap     = document.getElementById('chat-wrapper');
-  const showGreet    = @json($showGreeting);
+  const overlay   = document.getElementById('greeting-overlay');
+  const chatWrap  = document.getElementById('chat-wrapper');
+  const showGreet = @json($showGreeting);
 
-  // Greeting controls
   const greetingForm = document.getElementById('greeting-form');
   const greetingIn   = document.getElementById('greeting-input');
   const greetingBt   = document.getElementById('greeting-send');
 
-  // Chat controls
-  const messages     = document.getElementById('chat-messages');
-  const form         = document.getElementById('chat-form');
-  const input        = document.getElementById('chat-message');
+  const messages = document.getElementById('chat-messages');
+  const form     = document.getElementById('chat-form');
+  const input    = document.getElementById('chat-message');
 
-  // Routes
-  const STORE_URL    = @json(route('chat.store'));
-  const NEW_URL      = @json(route('chat.new'));
+  const STORE_URL = @json(route('chat.store'));
+  const NEW_URL   = @json(route('chat.new'));
 
-  // Initial visibility
-  setTimeout(() => {
-    if (showGreet) overlay.classList.remove('hidden');
-    else { overlay.classList.add('hidden'); chatWrap.classList.remove('hidden'); }
-  }, 100);
-
-  // Enable/disable "Start"
+  // Initial view
+  setTimeout(() => { if (showGreet) overlay.classList.remove('hidden'); else { overlay.classList.add('hidden'); chatWrap.classList.remove('hidden'); } }, 100);
   const toggleStartBtn = () => { greetingBt.disabled = !greetingIn.value.trim(); };
-  greetingIn.addEventListener('input', toggleStartBtn);
-  toggleStartBtn();
+  greetingIn.addEventListener('input', toggleStartBtn); toggleStartBtn();
 
-  function appendUserBubble(text) {
+  function appendUserBubble(text, time = '') {
     messages.insertAdjacentHTML('beforeend', `
       <div class="self-end text-right animate__animated animate__zoomIn">
-        <div class="inline-block bubble-user px-4 py-2 rounded-2xl max-w-xs mb-2">${text}</div>
+        <div class="inline-block bubble-user px-4 py-2 rounded-2xl max-w-xs">${text}</div>
+        <div class="msg-time text-[10px] text-gray-400 dark:text-gray-500 mt-1">${time}</div>
       </div>
     `);
     messages.scrollTop = messages.scrollHeight;
+    return messages.lastElementChild.querySelector('.msg-time');
   }
 
-  function appendBotBubble(text) {
+  function appendBotBubble(text, time = '') {
     messages.insertAdjacentHTML('beforeend', `
       <div class="self-start animate__animated animate__fadeIn">
-        <div class="inline-block bubble-ai px-4 py-2 rounded-2xl max-w-xs mb-2">${text}</div>
+        <div class="inline-block bubble-ai px-4 py-2 rounded-2xl max-w-xs">${text}</div>
+        <div class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">${time}</div>
       </div>
     `);
     messages.scrollTop = messages.scrollHeight;
@@ -168,22 +155,36 @@ document.addEventListener("DOMContentLoaded", () => {
   async function sendMessage(text) {
     if (!text.trim()) return;
 
-    appendUserBubble(text);
+    // optimistic user bubble (time filled after server reply)
+    const timeEl = appendUserBubble(text, '');
 
-    // Request bot replies
-    const res = await fetch(STORE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({ message: text })
-    });
+    let data;
+    try {
+      const res = await fetch(STORE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ message: text })
+      });
+      data = await res.json();
+    } catch (e) {
+      console.error('POST /chat failed', e);
+      return;
+    }
 
-    let data; try { data = await res.json(); } catch (e) { data = {}; }
-    if (data.bot_reply && Array.isArray(data.bot_reply)) {
-      for (let reply of data.bot_reply) {
-        appendBotBubble(reply);
+    // set server time for user's last message
+    if (data?.user_message?.time_human && timeEl) {
+      timeEl.textContent = data.user_message.time_human;
+    }
+
+    // append bot replies (supports strings OR {text, time_human})
+    if (Array.isArray(data?.bot_reply)) {
+      for (const r of data.bot_reply) {
+        const botText = typeof r === 'string' ? r : (r?.text ?? '');
+        const botTime = typeof r === 'object' ? (r?.time_human ?? '') : '';
+        if (botText) appendBotBubble(botText, botTime);
       }
     }
   }
@@ -203,14 +204,10 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleStartBtn();
   }
 
-  // Greeting events
   greetingBt.addEventListener('click', startFromGreeting);
   greetingForm.addEventListener('submit', (e) => { e.preventDefault(); startFromGreeting(); });
-  greetingIn.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); startFromGreeting(); }
-  });
+  greetingIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); startFromGreeting(); } });
 
-  // Chat form
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const txt = input.value.trim();

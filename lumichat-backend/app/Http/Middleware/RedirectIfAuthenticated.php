@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Providers\RouteServiceProvider;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +12,9 @@ class RedirectIfAuthenticated
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * If the user is already authenticated:
+     *  - Admin or Counselor -> redirect to admin dashboard
+     *  - Student            -> redirect to chat
      */
     public function handle(Request $request, Closure $next, string ...$guards): Response
     {
@@ -21,7 +22,13 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
+                $user = Auth::guard($guard)->user();
+
+                if ($user && method_exists($user, 'canAccessAdmin') && $user->canAccessAdmin()) {
+                    return redirect()->route('admin.dashboard');
+                }
+
+                return redirect()->route('chat.index');
             }
         }
 

@@ -19,7 +19,7 @@ class Chat extends Model
 
     public $timestamps = false;
 
-    protected $dates = [
-        'sent_at',
+    protected $casts = [
+        'sent_at' => 'datetime',
     ];
 }

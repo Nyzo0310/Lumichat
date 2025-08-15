@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\Route;
 class RouteServiceProvider extends ServiceProvider
 {
     /**
-     * The path to your application's "home" route.
-     *
-     * Typically, users are redirected here after authentication.
-     *
-     * @var string
+     * Where users land by default after login (students).
      */
     public const HOME = '/chat';
 
@@ -29,12 +25,18 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
+            // API routes
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
+            // Web routes (student side, auth, etc.)
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
+
+            // ⬇️ Load admin routes (prefix/name/middleware are defined inside routes/admin.php)
+            Route::middleware('web')
+                ->group(base_path('routes/admin.php'));
         });
     }
 }

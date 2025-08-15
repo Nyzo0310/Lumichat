@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-4xl mx-auto p-6 space-y-6">
 
-  {{-- Header row --}}
+  {{-- Header --}}
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
       <h2 class="title-dynamic text-2xl font-semibold">Your Chat History</h2>
@@ -28,13 +28,11 @@
       </div>
 
       {{-- Manage toggle --}}
-      <button id="manageToggle" class="btn-secondary">
-        Manage
-      </button>
+      <button id="manageToggle" class="btn-secondary">Manage</button>
     </div>
   </div>
 
-  {{-- Bulk actions toolbar (hidden until Manage) --}}
+  {{-- Bulk actions toolbar --}}
   <div id="bulkBar"
        class="hidden sticky top-0 z-10 -mx-6 px-6 py-3 bg-white/90 backdrop-blur border-b border-gray-100
               dark:bg-gray-800/90 dark:border-gray-700">
@@ -56,19 +54,23 @@
                 class="px-4 py-2 rounded-lg bg-rose-600 text-white text-sm hover:bg-rose-700">
           Delete selected
         </button>
-        <button id="doneManageBtn" class="btn-secondary">
-          Done
-        </button>
+        <button id="doneManageBtn" class="btn-secondary">Done</button>
       </div>
     </div>
   </div>
 
-  {{-- Sessions list --}}
+  {{-- Sessions list (wireframe style) --}}
   @forelse ($sessions as $session)
-    <div class="session-card card-shell p-4 sm:p-5 transition hover:shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+    @php
+      $title = $session->topic_summary ?: 'Untitled conversation';
+      $last  = optional($session->updated_at)->diffForHumans() ?? 'just now';
+    @endphp
+
+    <div class="session-card card-shell p-5 sm:p-6 transition hover:shadow-md
+                flex items-start sm:items-center justify-between gap-4"
          data-session-card
          data-session-id="{{ $session->id }}"
-         data-title="{{ Str::lower($session->topic_summary ?? 'Untitled conversation') }}">
+         data-title="{{ strtolower($title) }}">
 
       <div class="flex items-start gap-3 min-w-0">
         {{-- Hidden checkbox for Manage mode --}}
@@ -78,35 +80,32 @@
                value="{{ $session->id }}" />
 
         <div class="min-w-0">
-          <h3 class="title-dynamic text-base sm:text-lg font-semibold truncate">
-            {{ $session->topic_summary ?? 'Untitled conversation' }}
-          </h3>
-          <p class="muted-dynamic text-xs">
-            Started {{ $session->created_at->format('M d, Y h:i A') }}
-            • Updated {{ $session->updated_at->diffForHumans() }}
-          </p>
+          <h3 class="title-dynamic text-lg font-semibold truncate">{{ $title }}</h3>
+          <p class="muted-dynamic text-xs sm:text-sm">Last interaction: {{ $last }}</p>
+
+          {{-- Link-style Continue in Chat --}}
+          <form method="POST" action="{{ route('chat.activate', $session->id) }}" class="mt-2">
+            @csrf
+            <button type="submit"
+                    class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700
+                           dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium">
+              Continue in Chat <span aria-hidden="true">→</span>
+            </button>
+          </form>
         </div>
       </div>
 
-      <div class="flex items-center gap-2 shrink-0">
-        {{-- Continue in Chat (activates session & goes to /chat) --}}
-        <form method="POST" action="{{ route('chat.activate', $session->id) }}">
-          @csrf
-          <button type="submit" class="btn-primary">
-            Continue in Chat
-          </button>
-        </form>
-
-        {{-- Delete single --}}
-        <form method="POST" action="{{ route('chat.deleteSession', $session->id) }}" class="single-delete-form">
-          @csrf
-          @method('DELETE')
-          <button type="submit"
-                  class="btn-secondary !text-white !bg-rose-600 !border-rose-600 hover:!bg-rose-700">
-            Delete
-          </button>
-        </form>
-      </div>
+      {{-- Delete on the right --}}
+      <form method="POST" action="{{ route('chat.deleteSession', $session->id) }}"
+            class="single-delete-form shrink-0">
+        @csrf
+        @method('DELETE')
+        <button type="submit"
+                class="px-4 py-2 rounded-lg text-white bg-rose-600 border border-rose-600
+                       hover:bg-rose-700 text-sm">
+          Delete
+        </button>
+      </form>
     </div>
   @empty
     <div class="card-shell p-10 text-center">
@@ -116,120 +115,139 @@
       </a>
     </div>
   @endforelse
+
+  {{-- Pagination (if using paginate() in controller) --}}
+  @if (method_exists($sessions, 'links'))
+    <div class="pt-2">{{ $sessions->links() }}</div>
+  @endif
 </div>
 
 {{-- CSRF for JS fetch --}}
-<script>
-  const CSRF_TOKEN = @json(csrf_token());
-</script>
+<script>const CSRF_TOKEN = @json(csrf_token());</script>
+
+{{-- SweetAlert2 --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  (function () {
-    /* --- DOM refs --- */
-    const manageToggle   = document.getElementById('manageToggle');
-    const bulkBar        = document.getElementById('bulkBar');
-    const doneManageBtn  = document.getElementById('doneManageBtn');
-    const selectAllBtn   = document.getElementById('selectAllBtn');
-    const clearAllBtn    = document.getElementById('clearAllBtn');
-    const deleteSelBtn   = document.getElementById('deleteSelectedBtn');
-    const searchInput    = document.getElementById('historySearch');
+(function () {
+  /* Refs */
+  const manageToggle  = document.getElementById('manageToggle');
+  const bulkBar       = document.getElementById('bulkBar');
+  const doneManageBtn = document.getElementById('doneManageBtn');
+  const selectAllBtn  = document.getElementById('selectAllBtn');
+  const clearAllBtn   = document.getElementById('clearAllBtn');
+  const deleteSelBtn  = document.getElementById('deleteSelectedBtn');
+  const searchInput   = document.getElementById('historySearch');
 
-    let managing = false;
+  let managing = false;
 
-    /* --- Manage mode on/off --- */
-    function setManaging(state) {
-      managing = state;
-      bulkBar.classList.toggle('hidden', !managing);
+  /* Manage mode */
+  function setManaging(state) {
+    managing = state;
+    bulkBar.classList.toggle('hidden', !managing);
 
-      document.querySelectorAll('[data-session-card]').forEach(card => {
-        const box          = card.querySelector('.bulk-box');
-        const singleDelete = card.querySelector('.single-delete-form');
-        if (box) box.classList.toggle('hidden', !managing);
-        if (singleDelete) singleDelete.classList.toggle('hidden', managing);
-      });
-
-      manageToggle.textContent = managing ? 'Managing…' : 'Manage';
-    }
-
-    manageToggle?.addEventListener('click', () => setManaging(true));
-    doneManageBtn?.addEventListener('click', () => {
-      document.querySelectorAll('.bulk-box:checked').forEach(cb => cb.checked = false);
-      setManaging(false);
+    document.querySelectorAll('[data-session-card]').forEach(card => {
+      const box = card.querySelector('.bulk-box');
+      const singleDelete = card.querySelector('.single-delete-form');
+      if (box) box.classList.toggle('hidden', !managing);
+      if (singleDelete) singleDelete.classList.toggle('hidden', managing);
     });
 
-    /* --- Select/Clear --- */
-    selectAllBtn?.addEventListener('click', () => {
-      document.querySelectorAll('.bulk-box').forEach(cb => cb.checked = true);
-    });
-    clearAllBtn?.addEventListener('click', () => {
-      document.querySelectorAll('.bulk-box:checked').forEach(cb => cb.checked = false);
-    });
+    manageToggle.textContent = managing ? 'Managing…' : 'Manage';
+  }
 
-    /* --- Single delete confirm --- */
-    document.querySelectorAll('.single-delete-form').forEach(form => {
-      form.addEventListener('submit', (e) => {
-        if (window.Swal) {
-          e.preventDefault();
-          Swal.fire({
-            title: 'Delete this conversation?',
-            text: 'This action cannot be undone.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Delete',
-            cancelButtonText: 'Cancel'
-          }).then((r) => { if (r.isConfirmed) form.submit(); });
-        } else if (!confirm('Delete this conversation?')) {
-          e.preventDefault();
-        }
-      });
-    });
+  manageToggle?.addEventListener('click', () => setManaging(true));
+  doneManageBtn?.addEventListener('click', () => {
+    document.querySelectorAll('.bulk-box:checked').forEach(cb => cb.checked = false);
+    setManaging(false);
+  });
 
-    /* --- Bulk delete (reuses DELETE route) --- */
-    deleteSelBtn?.addEventListener('click', async () => {
-      const ids = Array.from(document.querySelectorAll('.bulk-box:checked')).map(cb => cb.value);
-      if (!ids.length) {
-        if (window.Swal) {
-          Swal.fire({ icon:'info', title:'No conversations selected', toast:true, position:'top-end', timer:2000, showConfirmButton:false });
-        } else {
-          alert('No conversations selected.');
-        }
-        return;
-      }
+  /* Select/Clear */
+  selectAllBtn?.addEventListener('click', () => {
+    document.querySelectorAll('.bulk-box').forEach(cb => cb.checked = true);
+  });
+  clearAllBtn?.addEventListener('click', () => {
+    document.querySelectorAll('.bulk-box:checked').forEach(cb => cb.checked = false);
+  });
 
-      const proceed = async () => {
-        for (const id of ids) {
-          await fetch(`{{ url('/chat/session') }}/${id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ _token: CSRF_TOKEN, _method: 'DELETE' })
-          });
-        }
-        window.location.reload();
-      };
-
+  /* Single delete confirm (SweetAlert2) */
+  document.querySelectorAll('.single-delete-form').forEach(form => {
+    form.addEventListener('submit', (e) => {
       if (window.Swal) {
+        e.preventDefault();
         Swal.fire({
-          title: `Delete ${ids.length} selected conversation(s)?`,
+          title: 'Delete this conversation?',
           text: 'This action cannot be undone.',
           icon: 'warning',
           showCancelButton: true,
           confirmButtonText: 'Delete',
-          cancelButtonText: 'Cancel'
-        }).then(r => { if (r.isConfirmed) proceed(); });
-      } else if (confirm(`Delete ${ids.length} selected conversation(s)?`)) {
-        proceed();
+          cancelButtonText: 'Cancel',
+          confirmButtonColor: '#dc2626',   // rose-600
+          cancelButtonColor: '#6b7280',    // gray-500
+          reverseButtons: true
+        }).then((r) => { if (r.isConfirmed) form.submit(); });
+      } else if (!confirm('Delete this conversation?')) {
+        e.preventDefault();
       }
     });
+  });
 
-    /* --- Search filter (client-side) --- */
-    function filter() {
-      const q = (searchInput?.value || '').trim().toLowerCase();
-      document.querySelectorAll('[data-session-card]').forEach(card => {
-        const title = card.getAttribute('data-title') || '';
-        card.classList.toggle('hidden', q && !title.includes(q));
-      });
+  /* Bulk delete (loop through your existing DELETE endpoint) */
+  deleteSelBtn?.addEventListener('click', async () => {
+    const ids = Array.from(document.querySelectorAll('.bulk-box:checked')).map(cb => cb.value);
+    if (!ids.length) {
+      if (window.Swal) {
+        Swal.fire({
+          icon:'info',
+          title:'No conversations selected',
+          toast:true,
+          position:'top-end',
+          timer:2000,
+          showConfirmButton:false
+        });
+      } else {
+        alert('No conversations selected.');
+      }
+      return;
     }
-    searchInput?.addEventListener('input', filter);
-  })();
+
+    const proceed = async () => {
+      for (const id of ids) {
+        await fetch(`{{ url('/chat/session') }}/${id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ _token: CSRF_TOKEN, _method: 'DELETE' })
+        });
+      }
+      window.location.reload();
+    };
+
+    if (window.Swal) {
+      Swal.fire({
+        title: `Delete ${ids.length} selected conversation(s)?`,
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true
+      }).then(r => { if (r.isConfirmed) proceed(); });
+    } else if (confirm(`Delete ${ids.length} selected conversation(s)?`)) {
+      proceed();
+    }
+  });
+
+  /* Client-side search filter */
+  function filter() {
+    const q = (searchInput?.value || '').trim().toLowerCase();
+    document.querySelectorAll('[data-session-card]').forEach(card => {
+      const title = card.getAttribute('data-title') || '';
+      card.classList.toggle('hidden', q && !title.includes(q));
+    });
+  }
+  searchInput?.addEventListener('input', filter);
+})();
 </script>
 @endsection
