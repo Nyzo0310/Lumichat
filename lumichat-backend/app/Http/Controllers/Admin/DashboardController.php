@@ -3,84 +3,97 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Chat;
-use App\Models\ChatSession;
+use App\Models\Appointment;
 use App\Models\User;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Crypt;
+use App\Models\ChatSession;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $startOfWeek = now()->startOfWeek();
+        // === KPIs ===
+        $totalAppointments = Appointment::count();
 
-        // KPIs (use what you have now; appointments/critical are placeholders)
-        $metrics = [
-            'appointments' => Schema::hasTable('appointments')
-                ? \DB::table('appointments')
-                    ->whereBetween('scheduled_at', [$startOfWeek, now()])
-                    ->count()
-                : 0,
-            'critical'     => 0, // TODO: replace with your own rule/table later
-            'counselors'   => User::where('role', User::ROLE_COUNSELOR)->count(),
-            'sessions'     => ChatSession::whereBetween('created_at', [$startOfWeek, now()])->count(),
-        ];
+        // Active counselors — adapt to available column on tbl_users
+        $usersTable = (new User)->getTable();
+        $chatSessionsTable = (new ChatSession)->getTable();
 
-        // Recent chat sessions (with last message preview)
-        $recentChats = ChatSession::with(['chats' => function ($q) {
-                $q->latest('sent_at')->limit(1);
-            }])
-            ->latest('updated_at')
+        $activeCounselorsQuery = User::query()->where('role', 'counselor');
+
+        if (Schema::hasColumn($usersTable, 'is_active')) {
+            $activeCounselorsQuery->where('is_active', 1);
+        } elseif (Schema::hasColumn($usersTable, 'status')) {
+            $activeCounselorsQuery->where('status', 'active');
+        }
+        $activeCounselors = $activeCounselorsQuery->count();
+
+        $chatSessionsThisWeek = ChatSession::whereBetween('created_at', [
+            Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()
+        ])->count();
+
+        $criticalCases = Schema::hasColumn($chatSessionsTable, 'is_critical')
+            ? ChatSession::where('is_critical', 1)->count()
+            : 0;
+
+        // === Panels ===
+
+        // Recent appointments
+        $recentAppointments = Appointment::with(['student:id,name'])
+            ->orderByDesc('scheduled_at')
+            ->orderByDesc('created_at')
             ->take(5)
-            ->get()
-            ->map(function ($session) {
-                $last = optional($session->chats->first());
-                $preview = '';
-                if ($last) {
-                    try {
-                        $preview = Crypt::decryptString($last->message);
-                    } catch (\Throwable $e) {
-                        $preview = '[Encrypted]';
-                    }
-                }
-                return [
-                    'id'        => $session->id,
-                    'title'     => $session->topic_summary ?: 'Untitled conversation',
-                    'preview'   => str($preview)->limit(120),
-                    'updated'   => $session->updated_at?->diffForHumans(),
-                ];
-            });
+            ->get();
 
-        // System activity: combine new users + new sessions (simple feed)
-        $activity = new Collection();
+        // System Activity
+        $userEvents = User::orderByDesc('created_at')->take(5)->get()->map(fn ($u) => [
+            'when'  => $u->created_at,
+            'text'  => "New user registered: {$u->name}",
+            'badge' => 'User',
+        ]);
 
-        User::latest()->take(5)->get()->each(function ($u) use ($activity) {
-            $activity->push([
-                'ts'   => $u->created_at,
-                'text' => "New user registered: {$u->name}",
-            ]);
-        });
-
-        ChatSession::latest()->take(5)->get()->each(function ($s) use ($activity) {
-            $title = $s->topic_summary ?: 'New chat session';
-            $activity->push([
-                'ts'   => $s->created_at,
-                'text' => "Chat session started: {$title}",
-            ]);
-        });
-
-        $systemActivity = $activity->sortByDesc('ts')->take(6)->map(function ($item) {
+        $chatEvents = ChatSession::orderByDesc('created_at')->take(5)->get()->map(function ($s) {
+            $label = $s->topic_summary ?: 'Starting conversation';
             return [
-                'text' => $item['text'],
-                'ago'  => optional($item['ts'])->diffForHumans(),
+                'when'  => $s->created_at,
+                'text'  => 'Chat session started: ' . Str::limit($label, 60),
+                'badge' => 'Chat',
             ];
         });
 
-        // (Optional) Recent appointments list if you add that table later
-        $recentAppointments = collect(); // keep empty for now
+        $appointmentEvents = Appointment::orderByDesc('created_at')->take(5)->get()->map(function ($a) {
+            $name = optional($a->student)->name ?: 'Student';
+            return [
+                'when'  => $a->created_at,
+                'text'  => "Appointment created for {$name}",
+                'badge' => 'Appointment',
+            ];
+        });
 
-        return view('admin.dashboard', compact('metrics','recentChats','systemActivity','recentAppointments'));
+        $activityFeed = collect()
+            ->merge($userEvents)
+            ->merge($chatEvents)
+            ->merge($appointmentEvents)
+            ->sortByDesc('when')
+            ->values()
+            ->take(8);
+
+        // Recent chats
+        $recentChats = ChatSession::with(['user:id,name'])
+            ->orderByDesc('created_at')
+            ->take(5)
+            ->get();
+
+        return view('admin.dashboard', compact(
+            'totalAppointments',
+            'criticalCases',
+            'activeCounselors',
+            'chatSessionsThisWeek',
+            'recentAppointments',
+            'activityFeed',
+            'recentChats'
+        ));
     }
 }
