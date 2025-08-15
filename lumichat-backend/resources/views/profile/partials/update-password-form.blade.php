@@ -1,9 +1,9 @@
 <section>
   <header>
-    <h2 class="text-lg font-medium text-gray-900">
+    <h2 class="title-dynamic text-lg font-medium">
       {{ __('Update Password') }}
     </h2>
-    <p class="mt-1 text-sm text-gray-600">
+    <p class="mt-1 muted-dynamic text-sm">
       {{ __('Ensure your account is using a long, random password to stay secure.') }}
     </p>
   </header>
@@ -13,31 +13,28 @@
     @method('put')
 
     <div>
-      <x-input-label for="update_password_current_password" :value="__('Current Password')" />
+      <x-input-label for="update_password_current_password" :value="__('Current Password')" class="title-dynamic"/>
       <x-text-input id="update_password_current_password" name="current_password" type="password"
-                    class="mt-1 block w-full" autocomplete="current-password" />
+                    class="mt-1 block w-full input-dynamic" autocomplete="current-password" />
       <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
     </div>
 
     <div>
-      <x-input-label for="update_password_password" :value="__('New Password')" />
+      <x-input-label for="update_password_password" :value="__('New Password')" class="title-dynamic"/>
       <x-text-input id="update_password_password" name="password" type="password"
-                    class="mt-1 block w-full" autocomplete="new-password" />
+                    class="mt-1 block w-full input-dynamic" autocomplete="new-password" />
       <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
     </div>
 
     <div>
-      <x-input-label for="update_password_password_confirmation" :value="__('Confirm Password')" />
+      <x-input-label for="update_password_password_confirmation" :value="__('Confirm Password')" class="title-dynamic"/>
       <x-text-input id="update_password_password_confirmation" name="password_confirmation" type="password"
-                    class="mt-1 block w-full" autocomplete="new-password" />
+                    class="mt-1 block w-full input-dynamic" autocomplete="new-password" />
       <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2" />
     </div>
 
     <div class="flex items-center gap-4">
-      {{-- Match the indigo button you use elsewhere --}}
-      <button type="submit"
-              class="px-5 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700
-                     focus:outline-none focus:ring-2 focus:ring-indigo-400">
+      <button type="submit" class="btn-primary">
         {{ __('Save') }}
       </button>
     </div>
@@ -54,7 +51,7 @@
         title: 'Password updated',
         text: 'Your password has been changed successfully.',
         confirmButtonText: 'OK',
-        confirmButtonColor: '#4F46E5' // indigo
+        confirmButtonColor: '#4F46E5'
       });
     });
   </script>

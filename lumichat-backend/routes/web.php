@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\SettingsController;
 
 // Default redirect
 Route::get('/', function () {
@@ -26,6 +27,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
     Route::get('/chat/view/{id}', [ChatController::class, 'viewSession'])->name('chat.view');
     Route::delete('/chat/session/{id}', [ChatController::class, 'deleteSession'])->name('chat.deleteSession');
+    Route::delete('/chat/bulk-delete', [ChatController::class, 'bulkDelete'])->name('chat.bulkDelete');
+
+    Route::post('/chat/activate/{id}', [ChatController::class, 'activate'])
+    ->name('chat.activate');
+
 
     // Profile
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -37,5 +43,9 @@ Route::get('/privacy-policy', function () {
     return view('privacy-policy');
 })->name('privacy.policy');
 
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+});
 // ✅ Default auth routes (login, logout, etc.)
 require __DIR__.'/auth.php';

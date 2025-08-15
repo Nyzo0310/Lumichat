@@ -105,51 +105,77 @@ class ChatController extends Controller
         return response()->json(['bot_reply'=>$botReplies]);
     }
 
-    public function history()
+    public function history(Request $request)
     {
-        $sessions = ChatSession::with(['chats'=>fn($q)=>$q->latest('sent_at')])
+        $q = trim($request->get('q', ''));
+
+        // Load only the latest chat for preview (encrypted in DB, we decrypt below)
+        $sessions = ChatSession::with(['chats' => function ($query) {
+                $query->latest('sent_at')->limit(1);
+            }])
             ->where('user_id', Auth::id())
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where('topic_summary', 'like', "%{$q}%");
+            })
             ->orderByDesc('updated_at')
-            ->get()
-            ->each(fn($session) => $session->chats->each(function($chat){
+            ->paginate(10)
+            ->withQueryString();
+
+        // Decrypt the last message preview (if present)
+        foreach ($sessions as $session) {
+            foreach ($session->chats as $chat) {
                 try {
-                    $chat->message = Crypt::decryptString($chat->message);
+                    $chat->message = \Illuminate\Support\Facades\Crypt::decryptString($chat->message);
                 } catch (\Exception $e) {
                     $chat->message = '[Unreadable]';
                 }
-            }));
+            }
+        }
 
-        return view('chat-history', compact('sessions'));
-    }
-
-    public function viewSession($id)
-    {
-        $session = ChatSession::where('id',$id)
-            ->where('user_id',Auth::id())
-            ->firstOrFail();
-
-        $messages = Chat::where('chat_session_id',$id)
-            ->where('user_id',Auth::id())
-            ->orderBy('sent_at')
-            ->get()
-            ->map(fn($c) => tap($c, function($chat){
-                try {
-                    $chat->message = Crypt::decryptString($chat->message);
-                } catch (\Exception $e) {
-                    $chat->message = '[Unreadable]';
-                }
-            }));
-
-        return view('chat-view', compact('session','messages'));
+        return view('chat-history', compact('sessions', 'q'));
     }
 
     public function deleteSession($id)
     {
-        ChatSession::where('id',$id)
-            ->where('user_id',Auth::id())
+        ChatSession::where('id', $id)
+            ->where('user_id', Auth::id())
             ->delete();
 
-        return redirect()->route('chat.history')
-                         ->with('status','Session deleted');
+        return redirect()
+            ->route('chat.history')
+            ->with('status', 'Session deleted');
     }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = explode(',', $request->input('ids', ''));
+        ChatSession::whereIn('id', $ids)
+            ->where('user_id', Auth::id())
+            ->delete();
+
+        return redirect()->route('chat.history')->with('status', 'Selected sessions deleted');
+    }
+    
+    public function activate($id)
+    {
+        // Make sure this session belongs to the logged-in user
+        $session = ChatSession::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        // Set it as the active chat session
+        session([
+            'chat_session_id' => $session->id,
+            'show_greeting'   => false, // don't show greeting when resuming
+        ]);
+
+        // Optional: refresh "last used" timestamp
+        $session->touch();
+
+        return redirect()
+            ->route('chat.index')
+            ->with('status', 'session-activated');
+    }
+
+
 }

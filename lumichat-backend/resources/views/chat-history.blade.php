@@ -1,37 +1,235 @@
 @extends('layouts.app')
 
+@section('title', 'Chat History')
+
 @section('content')
-<div class="max-w-4xl mx-auto p-6">
-    <h2 class="text-3xl font-bold mb-6">Your Chat History</h2>
+<div class="max-w-4xl mx-auto p-6 space-y-6">
 
-    @foreach ($sessions as $session)
-        <div class="bg-white rounded-xl shadow-md p-6 mb-5 border border-gray-200">
-            <div class="flex justify-between items-center mb-2">
-                <div>
-                    <h3 class="text-xl font-semibold text-purple-700">{{ $session->topic_summary ?? '[No Title]' }}</h3>
-                    <p class="text-sm text-gray-500">
-                        Last interaction: {{ $session->updated_at->diffForHumans() }}
-                    </p>
-                </div>
-                <form method="POST" action="{{ route('chat.deleteSession', $session->id) }}">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
-                        Delete
-                    </button>
-                </form>
-            </div>
+  {{-- Header row --}}
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="title-dynamic text-2xl font-semibold">Your Chat History</h2>
+      <p class="muted-dynamic text-sm">Review past conversations or resume them in the main chat.</p>
+    </div>
 
-            <a href="{{ url('/chat/view/' . $session->id) }}"
-               class="text-blue-600 hover:underline text-sm">
-                View full conversation →
-            </a>
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+      {{-- Search --}}
+      <div class="relative flex-1 sm:flex-initial sm:w-72">
+        <input
+          id="historySearch"
+          type="text"
+          placeholder="Search conversations..."
+          class="input-dynamic w-full pl-10 pr-3 py-2 text-sm"
+        />
+        <svg class="pointer-events-none absolute left-3 top-2.5 h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z"/>
+        </svg>
+      </div>
+
+      {{-- Manage toggle --}}
+      <button id="manageToggle" class="btn-secondary">
+        Manage
+      </button>
+    </div>
+  </div>
+
+  {{-- Bulk actions toolbar (hidden until Manage) --}}
+  <div id="bulkBar"
+       class="hidden sticky top-0 z-10 -mx-6 px-6 py-3 bg-white/90 backdrop-blur border-b border-gray-100
+              dark:bg-gray-800/90 dark:border-gray-700">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button id="selectAllBtn"
+                class="px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 text-sm hover:bg-gray-200
+                       dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
+          Select all
+        </button>
+        <button id="clearAllBtn"
+                class="px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 text-sm hover:bg-gray-200
+                       dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
+          Clear
+        </button>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="deleteSelectedBtn"
+                class="px-4 py-2 rounded-lg bg-rose-600 text-white text-sm hover:bg-rose-700">
+          Delete selected
+        </button>
+        <button id="doneManageBtn" class="btn-secondary">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {{-- Sessions list --}}
+  @forelse ($sessions as $session)
+    <div class="session-card card-shell p-4 sm:p-5 transition hover:shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+         data-session-card
+         data-session-id="{{ $session->id }}"
+         data-title="{{ Str::lower($session->topic_summary ?? 'Untitled conversation') }}">
+
+      <div class="flex items-start gap-3 min-w-0">
+        {{-- Hidden checkbox for Manage mode --}}
+        <input type="checkbox"
+               class="bulk-box mt-1.5 h-4 w-4 text-indigo-600 border-gray-300 rounded hidden
+                      dark:border-gray-600"
+               value="{{ $session->id }}" />
+
+        <div class="min-w-0">
+          <h3 class="title-dynamic text-base sm:text-lg font-semibold truncate">
+            {{ $session->topic_summary ?? 'Untitled conversation' }}
+          </h3>
+          <p class="muted-dynamic text-xs">
+            Started {{ $session->created_at->format('M d, Y h:i A') }}
+            • Updated {{ $session->updated_at->diffForHumans() }}
+          </p>
         </div>
-    @endforeach
+      </div>
 
-    @if ($sessions->isEmpty())
-        <p class="text-gray-600">No chat sessions found yet.</p>
-    @endif
+      <div class="flex items-center gap-2 shrink-0">
+        {{-- Continue in Chat (activates session & goes to /chat) --}}
+        <form method="POST" action="{{ route('chat.activate', $session->id) }}">
+          @csrf
+          <button type="submit" class="btn-primary">
+            Continue in Chat
+          </button>
+        </form>
+
+        {{-- Delete single --}}
+        <form method="POST" action="{{ route('chat.deleteSession', $session->id) }}" class="single-delete-form">
+          @csrf
+          @method('DELETE')
+          <button type="submit"
+                  class="btn-secondary !text-white !bg-rose-600 !border-rose-600 hover:!bg-rose-700">
+            Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  @empty
+    <div class="card-shell p-10 text-center">
+      <p class="muted-dynamic">No chat sessions found yet.</p>
+      <a href="{{ route('chat.new') }}" class="btn-primary mt-4 inline-flex">
+        Start your first chat
+      </a>
+    </div>
+  @endforelse
 </div>
+
+{{-- CSRF for JS fetch --}}
+<script>
+  const CSRF_TOKEN = @json(csrf_token());
+</script>
+
+<script>
+  (function () {
+    /* --- DOM refs --- */
+    const manageToggle   = document.getElementById('manageToggle');
+    const bulkBar        = document.getElementById('bulkBar');
+    const doneManageBtn  = document.getElementById('doneManageBtn');
+    const selectAllBtn   = document.getElementById('selectAllBtn');
+    const clearAllBtn    = document.getElementById('clearAllBtn');
+    const deleteSelBtn   = document.getElementById('deleteSelectedBtn');
+    const searchInput    = document.getElementById('historySearch');
+
+    let managing = false;
+
+    /* --- Manage mode on/off --- */
+    function setManaging(state) {
+      managing = state;
+      bulkBar.classList.toggle('hidden', !managing);
+
+      document.querySelectorAll('[data-session-card]').forEach(card => {
+        const box          = card.querySelector('.bulk-box');
+        const singleDelete = card.querySelector('.single-delete-form');
+        if (box) box.classList.toggle('hidden', !managing);
+        if (singleDelete) singleDelete.classList.toggle('hidden', managing);
+      });
+
+      manageToggle.textContent = managing ? 'Managing…' : 'Manage';
+    }
+
+    manageToggle?.addEventListener('click', () => setManaging(true));
+    doneManageBtn?.addEventListener('click', () => {
+      document.querySelectorAll('.bulk-box:checked').forEach(cb => cb.checked = false);
+      setManaging(false);
+    });
+
+    /* --- Select/Clear --- */
+    selectAllBtn?.addEventListener('click', () => {
+      document.querySelectorAll('.bulk-box').forEach(cb => cb.checked = true);
+    });
+    clearAllBtn?.addEventListener('click', () => {
+      document.querySelectorAll('.bulk-box:checked').forEach(cb => cb.checked = false);
+    });
+
+    /* --- Single delete confirm --- */
+    document.querySelectorAll('.single-delete-form').forEach(form => {
+      form.addEventListener('submit', (e) => {
+        if (window.Swal) {
+          e.preventDefault();
+          Swal.fire({
+            title: 'Delete this conversation?',
+            text: 'This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel'
+          }).then((r) => { if (r.isConfirmed) form.submit(); });
+        } else if (!confirm('Delete this conversation?')) {
+          e.preventDefault();
+        }
+      });
+    });
+
+    /* --- Bulk delete (reuses DELETE route) --- */
+    deleteSelBtn?.addEventListener('click', async () => {
+      const ids = Array.from(document.querySelectorAll('.bulk-box:checked')).map(cb => cb.value);
+      if (!ids.length) {
+        if (window.Swal) {
+          Swal.fire({ icon:'info', title:'No conversations selected', toast:true, position:'top-end', timer:2000, showConfirmButton:false });
+        } else {
+          alert('No conversations selected.');
+        }
+        return;
+      }
+
+      const proceed = async () => {
+        for (const id of ids) {
+          await fetch(`{{ url('/chat/session') }}/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ _token: CSRF_TOKEN, _method: 'DELETE' })
+          });
+        }
+        window.location.reload();
+      };
+
+      if (window.Swal) {
+        Swal.fire({
+          title: `Delete ${ids.length} selected conversation(s)?`,
+          text: 'This action cannot be undone.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Delete',
+          cancelButtonText: 'Cancel'
+        }).then(r => { if (r.isConfirmed) proceed(); });
+      } else if (confirm(`Delete ${ids.length} selected conversation(s)?`)) {
+        proceed();
+      }
+    });
+
+    /* --- Search filter (client-side) --- */
+    function filter() {
+      const q = (searchInput?.value || '').trim().toLowerCase();
+      document.querySelectorAll('[data-session-card]').forEach(card => {
+        const title = card.getAttribute('data-title') || '';
+        card.classList.toggle('hidden', q && !title.includes(q));
+      });
+    }
+    searchInput?.addEventListener('input', filter);
+  })();
+</script>
 @endsection
