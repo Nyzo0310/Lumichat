@@ -48,7 +48,7 @@
                 class="absolute top-1/2 right-2 -translate-y-1/2
                        px-5 py-2 rounded-full text-white text-sm font-medium
                        bg-indigo-500 disabled:bg-indigo-400/60 hover:bg-indigo-600 transition shadow">
-          Start
+          Send
         </button>
       </div>
       <p class="text-sm opacity-90 mt-6 text-white/90 animate__animated animate__fadeInUp">
