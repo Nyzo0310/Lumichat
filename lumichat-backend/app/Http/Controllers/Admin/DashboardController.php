@@ -3,97 +3,150 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Appointment;
-use App\Models\User;
-use App\Models\ChatSession;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // === KPIs ===
-        $totalAppointments = Appointment::count();
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek   = Carbon::now()->endOfWeek();
 
-        // Active counselors — adapt to available column on tbl_users
-        $usersTable = (new User)->getTable();
-        $chatSessionsTable = (new ChatSession)->getTable();
-
-        $activeCounselorsQuery = User::query()->where('role', 'counselor');
-
-        if (Schema::hasColumn($usersTable, 'is_active')) {
-            $activeCounselorsQuery->where('is_active', 1);
-        } elseif (Schema::hasColumn($usersTable, 'status')) {
-            $activeCounselorsQuery->where('status', 'active');
-        }
-        $activeCounselors = $activeCounselorsQuery->count();
-
-        $chatSessionsThisWeek = ChatSession::whereBetween('created_at', [
-            Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()
-        ])->count();
-
-        $criticalCases = Schema::hasColumn($chatSessionsTable, 'is_critical')
-            ? ChatSession::where('is_critical', 1)->count()
+        // ---------------- KPIs ----------------
+        $appointmentsTotal = Schema::hasTable('tbl_appointment')
+            ? DB::table('tbl_appointment')->count()
             : 0;
 
-        // === Panels ===
+        // If you later create tbl_counselors, this will count active ones. Otherwise 0.
+        $activeCounselors = Schema::hasTable('tbl_counselors')
+            ? DB::table('tbl_counselors')
+                ->when(Schema::hasColumn('tbl_counselors', 'status'), fn ($q) => $q->where('status', 'active'))
+                ->count()
+            : 0;
 
-        // Recent appointments
-        $recentAppointments = Appointment::with(['student:id,name'])
-            ->orderByDesc('scheduled_at')
-            ->orderByDesc('created_at')
-            ->take(5)
-            ->get();
+        $chatSessionsThisWeek = Schema::hasTable('chat_sessions')
+            ? DB::table('chat_sessions')->whereBetween('created_at', [$startOfWeek, $endOfWeek])->count()
+            : 0;
 
-        // System Activity
-        $userEvents = User::orderByDesc('created_at')->take(5)->get()->map(fn ($u) => [
-            'when'  => $u->created_at,
-            'text'  => "New user registered: {$u->name}",
-            'badge' => 'User',
+        $criticalCases = 0; // keep 0 for now (no source yet)
+
+        // ---------------- Helpers ----------------
+        // Build a safe COALESCE expression based on columns that actually exist
+        $coalesceActor = function (string $table, string $alias): string {
+            $parts = [];
+            if (Schema::hasColumn($table, 'name'))       $parts[] = "$alias.name";
+            if (Schema::hasColumn($table, 'full_name'))  $parts[] = "$alias.full_name";
+            $hasFirst = Schema::hasColumn($table, 'first_name');
+            $hasLast  = Schema::hasColumn($table, 'last_name');
+            if ($hasFirst && $hasLast)                   $parts[] = "CONCAT($alias.first_name,' ',$alias.last_name)";
+            if (Schema::hasColumn($table, 'email'))      $parts[] = "$alias.email";
+            $parts[] = "'User'"; // final fallback
+            return 'COALESCE(' . implode(', ', $parts) . ')';
+        };
+
+        // ---------------- System Activity ----------------
+        $activities = collect();
+
+        if (Schema::hasTable('chat_sessions')) {
+            $cq = DB::table('chat_sessions as cs')->orderByDesc('cs.created_at')->limit(5);
+
+            if (Schema::hasTable('tbl_registration')) {
+                $cq->leftJoin('tbl_registration as u', 'u.id', '=', 'cs.user_id');
+                $actorExpr = $coalesceActor('tbl_registration', 'u');
+            } elseif (Schema::hasTable('users')) {
+                $cq->leftJoin('users as u', 'u.id', '=', 'cs.user_id');
+                $actorExpr = $coalesceActor('users', 'u');
+            } else {
+                $actorExpr = "'User'";
+            }
+
+            $chatActs = $cq->selectRaw("cs.created_at, cs.topic_summary, $actorExpr as actor_name")
+                ->get()
+                ->map(fn ($r) => (object)[
+                    'event'      => 'chat_session.started',
+                    'actor'      => $r->actor_name,
+                    'meta'       => $r->topic_summary,
+                    'created_at' => Carbon::parse($r->created_at),
+                ]);
+
+            $activities = $activities->merge($chatActs);
+        }
+
+        if (Schema::hasTable('tbl_registration')) {
+            $regActs = DB::table('tbl_registration')
+                ->orderByDesc('created_at')->limit(5)
+                ->get()
+                ->map(function ($r) {
+                    $name = trim(($r->first_name ?? '') . ' ' . ($r->last_name ?? ''));
+                    $display = $name !== '' ? $name : ($r->email ?? 'User');
+                    return (object)[
+                        'event'      => 'user.registered',
+                        'actor'      => $display,
+                        'meta'       => null,
+                        'created_at' => Carbon::parse($r->created_at),
+                    ];
+                });
+
+            $activities = $activities->merge($regActs);
+        }
+
+        // Sort newest first and take 5
+        $activities = $activities->sortByDesc('created_at')->values()->take(5);
+
+        // ---------------- Recent Appointments ----------------
+        $recentAppointments = collect();
+        if (Schema::hasTable('tbl_appointment')) {
+            $recentAppointments = DB::table('tbl_appointment')
+                ->orderByDesc(Schema::hasColumn('tbl_appointment', 'scheduled_at') ? 'scheduled_at' : 'created_at')
+                ->limit(5)
+                ->get()
+                ->map(function ($r) {
+                    $when = $r->scheduled_at ?? $r->created_at;
+                    return (object)[
+                        'id'           => $r->id ?? null,
+                        'status'       => $r->status ?? null,
+                        'when'         => Carbon::parse($when),
+                        'student_id'   => $r->student_id ?? null,
+                        'counselor_id' => $r->counselor_id ?? null,
+                        'notes'        => $r->notes ?? null,
+                    ];
+                });
+        }
+
+        // ---------------- Recent Chat Sessions ----------------
+        $recentChatSessions = collect();
+        if (Schema::hasTable('chat_sessions')) {
+            $cq = DB::table('chat_sessions as cs')->orderByDesc('cs.created_at')->limit(5);
+
+            if (Schema::hasTable('tbl_registration')) {
+                $cq->leftJoin('tbl_registration as u', 'u.id', '=', 'cs.user_id');
+                $actorExpr = $coalesceActor('tbl_registration', 'u');
+            } elseif (Schema::hasTable('users')) {
+                $cq->leftJoin('users as u', 'u.id', '=', 'cs.user_id');
+                $actorExpr = $coalesceActor('users', 'u');
+            } else {
+                $actorExpr = "'User'";
+            }
+
+            $recentChatSessions = $cq->selectRaw("cs.created_at, cs.topic_summary, $actorExpr as actor_name")
+                ->get()
+                ->map(fn ($r) => (object)[
+                    'created_at'    => Carbon::parse($r->created_at),
+                    'topic_summary' => $r->topic_summary,
+                    'actor'         => $r->actor_name,
+                ]);
+        }
+
+        return view('admin.dashboard', [
+            'appointmentsTotal'     => $appointmentsTotal,
+            'criticalCasesTotal'    => $criticalCases,
+            'activeCounselors'      => $activeCounselors,
+            'chatSessionsThisWeek'  => $chatSessionsThisWeek,
+            'recentAppointments'    => $recentAppointments,
+            'activities'            => $activities,
+            'recentChatSessions'    => $recentChatSessions,
         ]);
-
-        $chatEvents = ChatSession::orderByDesc('created_at')->take(5)->get()->map(function ($s) {
-            $label = $s->topic_summary ?: 'Starting conversation';
-            return [
-                'when'  => $s->created_at,
-                'text'  => 'Chat session started: ' . Str::limit($label, 60),
-                'badge' => 'Chat',
-            ];
-        });
-
-        $appointmentEvents = Appointment::orderByDesc('created_at')->take(5)->get()->map(function ($a) {
-            $name = optional($a->student)->name ?: 'Student';
-            return [
-                'when'  => $a->created_at,
-                'text'  => "Appointment created for {$name}",
-                'badge' => 'Appointment',
-            ];
-        });
-
-        $activityFeed = collect()
-            ->merge($userEvents)
-            ->merge($chatEvents)
-            ->merge($appointmentEvents)
-            ->sortByDesc('when')
-            ->values()
-            ->take(8);
-
-        // Recent chats
-        $recentChats = ChatSession::with(['user:id,name'])
-            ->orderByDesc('created_at')
-            ->take(5)
-            ->get();
-
-        return view('admin.dashboard', compact(
-            'totalAppointments',
-            'criticalCases',
-            'activeCounselors',
-            'chatSessionsThisWeek',
-            'recentAppointments',
-            'activityFeed',
-            'recentChats'
-        ));
     }
 }

@@ -18,20 +18,17 @@
       <div
         class="relative overflow-hidden rounded-2xl border-[1px] p-5 bg-sky-50 border-sky-300 shadow-sm
                transition motion-safe:hover:-translate-y-0.5 hover:shadow-md
-               hover:border-sky-400 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-200"
-        role="region" aria-labelledby="kpi-appointments-title">
-
+               hover:border-sky-400 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-200">
         <div class="relative z-10 flex items-start gap-4">
           <span class="shrink-0 inline-flex w-12 h-12 items-center justify-center rounded-xl bg-white/80 ring-1 ring-sky-200">
             <img src="{{ asset('images/icons/appointment.png') }}" class="w-6 h-6" alt="Appointments icon">
           </span>
           <div class="min-w-0">
-            <div id="kpi-appointments-title" class="text-sm text-slate-600 font-medium">Total Appointments</div>
-            <div class="mt-1 text-3xl font-bold text-slate-900">{{ number_format($totalAppointments ?? 0) }}</div>
+            <div class="text-sm text-slate-600 font-medium">Total Appointments</div>
+            <div class="mt-1 text-3xl font-bold text-slate-900">{{ number_format($appointmentsTotal ?? 0) }}</div>
             <div class="mt-0.5 text-xs text-slate-500">0% from last week</div>
           </div>
         </div>
-
         <div class="pointer-events-none absolute -right-6 -bottom-8 w-44 h-44 rounded-full bg-sky-200/40 blur-2xl"></div>
       </div>
 
@@ -39,20 +36,17 @@
       <div
         class="relative overflow-hidden rounded-2xl border-[1px] p-5 bg-rose-50 border-rose-300 shadow-sm
                transition motion-safe:hover:-translate-y-0.5 hover:shadow-md
-               hover:border-rose-400 focus-within:border-rose-500 focus-within:ring-2 focus-within:ring-rose-200"
-        role="region" aria-labelledby="kpi-critical-title">
-
+               hover:border-rose-400 focus-within:border-rose-500 focus-within:ring-2 focus-within:ring-rose-200">
         <div class="relative z-10 flex items-start gap-4">
           <span class="shrink-0 inline-flex w-12 h-12 items-center justify-center rounded-xl bg-white/80 ring-1 ring-rose-200">
             <img src="{{ asset('images/icons/diagnosis.png') }}" class="w-6 h-6" alt="Critical cases icon">
           </span>
           <div class="min-w-0">
-            <div id="kpi-critical-title" class="text-sm text-slate-600 font-medium">Critical Cases</div>
-            <div class="mt-1 text-3xl font-bold text-slate-900">{{ number_format($criticalCases ?? 0) }}</div>
+            <div class="text-sm text-slate-600 font-medium">Critical Cases</div>
+            <div class="mt-1 text-3xl font-bold text-slate-900">{{ number_format($criticalCasesTotal ?? 0) }}</div>
             <div class="mt-0.5 text-xs text-slate-500">Requires attention</div>
           </div>
         </div>
-
         <div class="pointer-events-none absolute -right-6 -bottom-8 w-44 h-44 rounded-full bg-rose-200/40 blur-2xl"></div>
       </div>
 
@@ -60,41 +54,35 @@
       <div
         class="relative overflow-hidden rounded-2xl border-[1px] p-5 bg-amber-50 border-amber-300 shadow-sm
                transition motion-safe:hover:-translate-y-0.5 hover:shadow-md
-               hover:border-amber-400 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-200"
-        role="region" aria-labelledby="kpi-counselor-title">
-
+               hover:border-amber-400 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-200">
         <div class="relative z-10 flex items-start gap-4">
           <span class="shrink-0 inline-flex w-12 h-12 items-center justify-center rounded-xl bg-white/80 ring-1 ring-amber-200">
             <img src="{{ asset('images/icons/counselor.png') }}" class="w-6 h-6" alt="Counselor icon">
           </span>
           <div class="min-w-0">
-            <div id="kpi-counselor-title" class="text-sm text-slate-600 font-medium">Active Counselor</div>
+            <div class="text-sm text-slate-600 font-medium">Active Counselor</div>
             <div class="mt-1 text-3xl font-bold text-slate-900">{{ number_format($activeCounselors ?? 0) }}</div>
             <div class="mt-0.5 text-xs text-slate-500">Available counselors</div>
           </div>
         </div>
-
         <div class="pointer-events-none absolute -right-6 -bottom-8 w-44 h-44 rounded-full bg-amber-200/50 blur-2xl"></div>
       </div>
 
-      {{-- Chat Sessions (this week) --}}
+      {{-- Chat Sessions --}}
       <div
         class="relative overflow-hidden rounded-2xl border-[1px] p-5 bg-indigo-50 border-indigo-300 shadow-sm
                transition motion-safe:hover:-translate-y-0.5 hover:shadow-md
-               hover:border-indigo-400 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-200"
-        role="region" aria-labelledby="kpi-chats-title">
-
+               hover:border-indigo-400 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-200">
         <div class="relative z-10 flex items-start gap-4">
           <span class="shrink-0 inline-flex w-12 h-12 items-center justify-center rounded-xl bg-white/80 ring-1 ring-indigo-200">
             <img src="{{ asset('images/icons/chatbot-session.png') }}" class="w-6 h-6" alt="Chat sessions icon">
           </span>
           <div class="min-w-0">
-            <div id="kpi-chats-title" class="text-sm text-slate-600 font-medium">Chat Sessions</div>
+            <div class="text-sm text-slate-600 font-medium">Chat Sessions</div>
             <div class="mt-1 text-3xl font-bold text-slate-900">{{ number_format($chatSessionsThisWeek ?? 0) }}</div>
             <div class="mt-0.5 text-xs text-slate-500">This week</div>
           </div>
         </div>
-
         <div class="pointer-events-none absolute -right-6 -bottom-8 w-44 h-44 rounded-full bg-indigo-200/40 blur-2xl"></div>
       </div>
 
@@ -111,26 +99,29 @@
              href="#">View all</a>
         </div>
 
-        @if(isset($recentAppointments) && $recentAppointments->isNotEmpty())
-          <ul class="divide-y divide-slate-100">
+        @if(($recentAppointments ?? collect())->isEmpty())
+          <p class="text-sm text-slate-500">No appointments yet.</p>
+        @else
+          <ul class="divide-y divide-slate-100 text-sm">
             @foreach($recentAppointments as $appt)
               <li class="py-3 flex items-center justify-between">
-                <div>
-                  <div class="font-medium">
-                    {{ $appt->title ?? 'Appointment' }}
-                  </div>
-                  <div class="text-xs text-slate-400">
-                    {{ $appt->student->name ?? 'Student' }}
+                <div class="flex items-center gap-3">
+                  <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                  <div>
+                    <div class="font-medium">
+                      {{ $appt->status ? ucfirst($appt->status) : 'Scheduled' }}
+                    </div>
+                    @if(!empty($appt->notes))
+                      <div class="text-xs text-slate-500 line-clamp-1">{{ $appt->notes }}</div>
+                    @endif
                   </div>
                 </div>
-                <div class="text-xs text-slate-400">
-                  {{ optional($appt->scheduled_at ?? $appt->created_at)->diffForHumans() }}
-                </div>
+                <span class="text-slate-400">
+                  {{ optional($appt->when)->diffForHumans() }}
+                </span>
               </li>
             @endforeach
           </ul>
-        @else
-          <p class="text-sm text-slate-500">No appointments yet.</p>
         @endif
       </div>
 
@@ -140,32 +131,37 @@
           <h3 class="font-semibold">System Activity</h3>
         </div>
 
-        @if(isset($activityFeed) && $activityFeed->isNotEmpty())
+        @if(($activities ?? collect())->isEmpty())
+          <p class="text-sm text-slate-500">No activity yet.</p>
+        @else
           <ul class="space-y-3 text-sm">
-            @foreach($activityFeed as $item)
+            @foreach($activities as $a)
               @php
-                $badge = $item['badge'] ?? '';
-                $dot   = match($badge){
-                  'User'        => 'bg-emerald-500',
-                  'Appointment' => 'bg-sky-500',
-                  'Alert'       => 'bg-rose-500',
-                  'Chat'        => 'bg-indigo-500',
-                  default       => 'bg-slate-400',
-                };
+                $dot = str_starts_with($a->event, 'chat_session')
+                        ? 'bg-indigo-500'
+                        : (str_starts_with($a->event, 'user.registered') ? 'bg-emerald-500' : 'bg-slate-400');
+
+                $text = str_starts_with($a->event, 'chat_session')
+                          ? 'Chat session started: ' . ($a->meta ?? 'Starting conversation…')
+                          : (str_starts_with($a->event, 'user.registered')
+                              ? 'New user registered'
+                              : 'Activity');
               @endphp
+
               <li class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <span class="w-2 h-2 rounded-full {{ $dot }}"></span>
-                  <span>{{ $item['text'] ?? '' }}</span>
+                  <span>
+                    <span>{{ $text }}</span>
+                    @if(!empty($a->actor))
+                      <span class="text-slate-400 ml-2 text-xs">{{ $a->actor }}</span>
+                    @endif
+                  </span>
                 </div>
-                <span class="text-slate-400 text-xs">
-                  {{ optional($item['when'] ?? null)->diffForHumans() }}
-                </span>
+                <span class="text-slate-400">{{ optional($a->created_at)->diffForHumans() }}</span>
               </li>
             @endforeach
           </ul>
-        @else
-          <p class="text-sm text-slate-500">No recent activity.</p>
         @endif
       </div>
     </div>
@@ -178,26 +174,27 @@
            href="#">Open history</a>
       </div>
 
-      @if(isset($recentChats) && $recentChats->isNotEmpty())
-        <div class="divide-y divide-slate-100">
-          @foreach($recentChats as $s)
-            <div class="py-3 flex items-center justify-between">
-              <div>
-                <div class="font-medium">
-                  {{ $s->topic_summary ?? 'Conversation' }}
-                </div>
-                <div class="text-xs text-slate-400">
-                  {{ $s->user->name ?? 'Anonymous' }}
-                </div>
-              </div>
-              <div class="text-xs text-slate-400">
-                {{ $s->created_at->diffForHumans() }}
-              </div>
-            </div>
-          @endforeach
-        </div>
-      @else
+      @if(($recentChatSessions ?? collect())->isEmpty())
         <p class="text-sm text-slate-500">No chat sessions yet.</p>
+      @else
+        <ul class="divide-y divide-slate-100">
+          @foreach($recentChatSessions as $s)
+            <li class="py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                <div>
+                  <span class="font-medium">
+                    {{ $s->topic_summary ?: 'Starting conversation…' }}
+                  </span>
+                  @if(!empty($s->actor))
+                    <span class="text-xs text-slate-400 ml-2">{{ $s->actor }}</span>
+                  @endif
+                </div>
+              </div>
+              <span class="text-slate-400 text-sm">{{ optional($s->created_at)->diffForHumans() }}</span>
+            </li>
+          @endforeach
+        </ul>
       @endif
     </div>
 

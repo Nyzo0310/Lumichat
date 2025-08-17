@@ -7,22 +7,22 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('tbl_appointment', function (Blueprint $table) {
+        Schema::create('tbl_appointments', function (Blueprint $table) {
             $table->id();
-            // FK to users (no prefix in your DB)
-            $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('counselor_id')->nullable()->constrained('users')->nullOnDelete();
-
-            $table->timestamp('scheduled_at')->index();
-            $table->string('status')->default('pending'); // pending|confirmed|cancelled|completed
+            $table->unsignedBigInteger('student_id');      // users.id
+            $table->unsignedBigInteger('counselor_id');    // users.id
+            $table->dateTime('scheduled_at')->index();
+            $table->enum('status', ['pending','confirmed','canceled','completed'])
+                  ->default('pending')->index();
             $table->text('notes')->nullable();
-
             $table->timestamps();
+
+            $table->index(['student_id','counselor_id']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('tbl_appointment');
+        Schema::dropIfExists('tbl_appointments');
     }
 };
