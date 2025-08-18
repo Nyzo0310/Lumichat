@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\CounselorController;
+use App\Http\Controllers\Admin\StudentController; // ⬅️ add this
 
 Route::prefix('admin')
     ->name('admin.')
@@ -11,7 +12,12 @@ Route::prefix('admin')
         // Dashboard
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Counselors (resource routes)
+        // Counselors
         Route::resource('counselors', CounselorController::class)
             ->parameters(['counselors' => 'counselor']);
+
+        // Students (index + show only)
+        Route::resource('students', StudentController::class)
+            ->only(['index', 'show'])
+            ->parameters(['students' => 'student']); // binds to App\Models\Registration
     });

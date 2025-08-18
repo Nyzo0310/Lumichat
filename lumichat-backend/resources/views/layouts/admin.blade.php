@@ -176,15 +176,21 @@
         </a>
 
         <p class="mt-4 px-3 text-[11px] uppercase tracking-wider/relaxed opacity-90 nav-label">Student Management</p>
-        <a href="#"
-           class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10">
-          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg bg-white/10">
+        
+        {{-- Student Records (active on any admin.students.*) --}}
+        <a href="{{ route('admin.students.index') }}"
+          aria-current="{{ request()->routeIs('admin.students.*') ? 'page' : 'false' }}"
+          class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
+                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10
+                  {{ request()->routeIs('admin.students.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg
+                      {{ request()->routeIs('admin.students.*') ? 'bg-white/20' : 'bg-white/10' }}">
             <img src="{{ asset('images/icons/user.png') }}" class="w-[22px] h-[22px]" alt="">
           </span>
           <span class="nav-label font-medium">Student Records</span>
           <span class="rail-tip">Student Records</span>
         </a>
+
 
         <a href="#"
            class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
