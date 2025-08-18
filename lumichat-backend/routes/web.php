@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Admin\CounselorController;
 use App\Http\Controllers\SettingsController;
 
 // Default redirect
@@ -47,5 +48,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 });
+
+Route::prefix('admin')->middleware(['auth'])->as('admin.')->group(function () {
+    Route::resource('counselors', CounselorController::class)->parameters([
+        'counselors' => 'counselor'
+    ]);
+});
+
 // ✅ Default auth routes (login, logout, etc.)
 require __DIR__.'/auth.php';

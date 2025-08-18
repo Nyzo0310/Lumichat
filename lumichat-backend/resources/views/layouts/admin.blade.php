@@ -5,6 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>@yield('title','Dashboard') • LumiCHAT</title>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   @vite(['resources/css/app.css','resources/js/app.js'])
 
@@ -145,24 +147,28 @@
 
         <p class="px-3 text-[11px] uppercase tracking-wider/relaxed opacity-90 nav-label">Main</p>
 
-        {{-- Dashboard --}}
+        {{-- Dashboard (only active on admin.dashboard) --}}
         <a href="{{ route('admin.dashboard') }}"
-           aria-current="{{ request()->routeIs('admin.dashboard') ? 'page' : 'false' }}"
-           class="nav-item group relative mt-2 flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  ring-1 ring-white/10 bg-white/10 hover:bg-white/15 transition-colors
-                  @if(request()->routeIs('admin.dashboard')) is-active @endif">
-          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg bg-white/10">
+          aria-current="{{ request()->routeIs('admin.dashboard') ? 'page' : 'false' }}"
+          class="nav-item group relative mt-2 flex items-center gap-3 px-3 py-2.5 rounded-lg
+                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10
+                  {{ request()->routeIs('admin.dashboard') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg
+                      {{ request()->routeIs('admin.dashboard') ? 'bg-white/20' : 'bg-white/10' }}">
             <img src="{{ asset('images/icons/home.png') }}" class="w-[22px] h-[22px]" alt="">
           </span>
           <span class="nav-label font-medium">Dashboard Overview</span>
           <span class="rail-tip">Dashboard Overview</span>
         </a>
 
-        {{-- Counselor --}}
-        <a href="#"
-           class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10">
-          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg bg-white/10">
+        {{-- Counselor (active on any admin.counselors.*) --}}
+        <a href="{{ route('admin.counselors.index') }}"
+          aria-current="{{ request()->routeIs('admin.counselors.*') ? 'page' : 'false' }}"
+          class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
+                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10
+                  {{ request()->routeIs('admin.counselors.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg
+                      {{ request()->routeIs('admin.counselors.*') ? 'bg-white/20' : 'bg-white/10' }}">
             <img src="{{ asset('images/icons/counselor.png') }}" class="w-[22px] h-[22px]" alt="">
           </span>
           <span class="nav-label font-medium">Counselor</span>
@@ -170,7 +176,6 @@
         </a>
 
         <p class="mt-4 px-3 text-[11px] uppercase tracking-wider/relaxed opacity-90 nav-label">Student Management</p>
-
         <a href="#"
            class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
                   ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10">
