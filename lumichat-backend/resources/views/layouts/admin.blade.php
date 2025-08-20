@@ -192,10 +192,13 @@
         </a>
 
 
-        <a href="#"
-           class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10">
-          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg bg-white/10">
+        <a href="{{ route('admin.appointments.index') }}"
+          aria-current="{{ request()->routeIs('admin.appointments.*') ? 'page' : 'false' }}"
+          class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
+                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10
+                  {{ request()->routeIs('admin.appointments.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg
+                      {{ request()->routeIs('admin.appointments.*') ? 'bg-white/20' : 'bg-white/10' }}">
             <img src="{{ asset('images/icons/appointment.png') }}" class="w-[22px] h-[22px]" alt="">
           </span>
           <span class="nav-label font-medium">Appointments</span>
@@ -204,48 +207,60 @@
 
         <p class="mt-4 px-3 text-[11px] uppercase tracking-wider/relaxed opacity-90 nav-label">Reports</p>
 
-        <a href="#"
-           class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10">
-          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg bg-white/10">
+        <a href="{{ route('admin.chatbot-sessions.index') }}"
+          aria-current="{{ request()->routeIs('admin.chatbot-sessions.*') ? 'page' : 'false' }}"
+          class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
+                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10
+                  {{ request()->routeIs('admin.chatbot-sessions.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg
+                      {{ request()->routeIs('admin.chatbot-sessions.*') ? 'bg-white/20' : 'bg-white/10' }}">
             <img src="{{ asset('images/icons/chatbot-session.png') }}" class="w-[22px] h-[22px]" alt="">
           </span>
           <span class="nav-label font-medium">Chatbot Sessions</span>
           <span class="rail-tip">Chatbot Sessions</span>
         </a>
 
-        <a href="#"
-           class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10">
-          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg bg-white/10">
+        <a href="{{ route('admin.self-assessments.index') }}"
+          aria-current="{{ request()->routeIs('admin.self-assessments.*') ? 'page' : 'false' }}"
+          class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
+                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10
+                  {{ request()->routeIs('admin.self-assessments.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg
+                      {{ request()->routeIs('admin.self-assessments.*') ? 'bg-white/20' : 'bg-white/10' }}">
             <img src="{{ asset('images/icons/self-assessment.png') }}" class="w-[22px] h-[22px]" alt="">
           </span>
           <span class="nav-label font-medium">Self-Assessments</span>
           <span class="rail-tip">Self-Assessments</span>
         </a>
 
-        <a href="#"
-           class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10">
-          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg bg-white/10">
+        <a href="{{ route('admin.diagnosis-reports.index') }}"
+          aria-current="{{ request()->routeIs('admin.diagnosis-reports.*') ? 'page' : 'false' }}"
+          class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
+                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10
+                  {{ request()->routeIs('admin.diagnosis-reports.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg
+                      {{ request()->routeIs('admin.diagnosis-reports.*') ? 'bg-white/20' : 'bg-white/10' }}">
             <img src="{{ asset('images/icons/diagnosis.png') }}" class="w-[22px] h-[22px]" alt="">
           </span>
           <span class="nav-label font-medium">Diagnosis Reports</span>
           <span class="rail-tip">Diagnosis Reports</span>
         </a>
 
+
         <p class="mt-4 px-3 text-[11px] uppercase tracking-wider/relaxed opacity-90 nav-label">Analytics</p>
 
-        <a href="#"
-           class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
-                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10">
-          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg bg-white/10">
+        <a href="{{ route('admin.course-analytics.index') }}"
+          aria-current="{{ request()->routeIs('admin.course-analytics.*') ? 'page' : 'false' }}"
+          class="nav-item group relative mt-1.5 flex items-center gap-3 px-3 py-2.5 rounded-lg
+                  ring-1 ring-transparent hover:ring-white/10 hover:bg-white/10
+                  {{ request()->routeIs('admin.course-analytics.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+          <span class="inline-flex w-10 h-10 items-center justify-center rounded-lg
+                      {{ request()->routeIs('admin.course-analytics.*') ? 'bg-white/20' : 'bg-white/10' }}">
             <img src="{{ asset('images/icons/graduate.png') }}" class="w-[22px] h-[22px]" alt="">
           </span>
           <span class="nav-label font-medium">Course Analytics</span>
           <span class="rail-tip">Course Analytics</span>
         </a>
-      </div>
 
       {{-- Logout — visible only when rail is expanded --}}
       <div class="px-3 py-3 border-t border-white/15 hide-when-collapsed">
