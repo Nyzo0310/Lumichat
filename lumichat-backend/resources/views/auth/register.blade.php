@@ -44,10 +44,14 @@
                     <img src="{{ asset('images/icons/graduate.png') }}" class="w-5 h-5 mr-2" alt="Course Icon">
                     <select name="course" class="w-full bg-transparent text-sm outline-none border-none text-gray-700" required>
                         <option disabled {{ old('course') ? '' : 'selected' }}>Select your course</option>
-                        <option value="BSIT" {{ old('course') == 'BSIT' ? 'selected' : '' }}>BSIT</option>
-                        <option value="BSBA" {{ old('course') == 'BSBA' ? 'selected' : '' }}>BSBA</option>
-                        <option value="BEED" {{ old('course') == 'BEED' ? 'selected' : '' }}>BEED</option>
-                        <option value="BSED" {{ old('course') == 'BSED' ? 'selected' : '' }}>BSED</option>
+                        <option value="BSIT" {{ old('course') == 'BSIT' ? 'selected' : '' }}>College of Information Technology</option>
+                        <option value="EDUC" {{ old('course') == 'EDUC' ? 'selected' : '' }}>College of Education</option>
+                        <option value="CAS" {{ old('course') == 'CAS' ? 'selected' : '' }}>College of Arts and Sciences</option>
+                        <option value="CRIM" {{ old('course') == 'CRIM' ? 'selected' : '' }}>College of Criminal Justice and Public Safety</option>
+                        <option value="BLIS" {{ old('course') == 'BLIS' ? 'selected' : '' }}>College of Library Information Science</option>
+                        <option value="MIDWIFERY" {{ old('course') == 'MIDWIFERY' ? 'selected' : '' }}>College of Midwifery</option>
+                        <option value="BSHM" {{ old('course') == 'BSHM' ? 'selected' : '' }}>College of Hospitality Management</option>
+                        <option value="BSBA" {{ old('course') == 'BSBA' ? 'selected' : '' }}>College of Business</option>
                     </select>
                 </div>
                 <div class="flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2">
