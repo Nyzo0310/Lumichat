@@ -46,22 +46,23 @@
 
       {{-- ====== NAVIGATION ====== --}}
       @php
-        /**
-         * Return a public icon path if it exists, otherwise fallback to images/chatbot.png.
-         * NOTE: your icons live in /public/images/icons/
-         */
-        function icon_path($filename) {
-            $path = public_path('images/icons/'.$filename);
-            return file_exists($path) ? asset('images/icons/'.$filename) : asset('images/chatbot.png');
-        }
+      function icon_path($filename) {
+          $path = public_path('images/icons/'.$filename);
+          return file_exists($path) ? asset('images/icons/'.$filename) : asset('images/chatbot.png');
+      }
 
-        // MAIN navigation: label => [routeName|null, iconFile]
-        $mainLinks = [
-          'Home'         => ['chat.index',    'home.png'],
-          'Profile'      => ['profile.edit',  'user.png'],
-          'Chat History' => [Route::has('chat.history') ? 'chat.history' : null, 'chat-history.png'],
-          'Settings'     => [Route::has('settings.index') ? 'settings.index' : null, 'settings.png'],
-        ];
+      $mainLinks = [
+        'Home'         => ['chat.index',    'home.png'],
+        'Profile'      => ['profile.edit',  'user.png'],
+
+        // ✅ Conditionally insert Appointment right here
+        ...(Auth::check() && (Auth::user()->appointments_enabled ?? false)
+            ? ['Appointment' => ['appointment.index', 'appointment.png']]
+            : []),
+
+        'Chat History' => [Route::has('chat.history') ? 'chat.history' : null, 'chat-history.png'],
+        'Settings'     => [Route::has('settings.index') ? 'settings.index' : null, 'settings.png'],
+      ];
       @endphp
 
       <nav class="flex-1 px-3 pt-5 space-y-4 overflow-y-auto">

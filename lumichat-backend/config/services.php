@@ -30,5 +30,14 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+    
+    'crisis' => [
+    'emergency_number' => env('CRISIS_EMERGENCY_NUMBER', '911'),
+    'hotline_name'     => env('CRISIS_HOTLINE_NAME', '988 Suicide & Crisis Lifeline'),
+    'hotline_phone'    => env('CRISIS_HOTLINE_PHONE', '988'),
+    'hotline_text'     => env('CRISIS_HOTLINE_TEXT', 'Text HOME to 741741'),
+    'hotline_url'      => env('CRISIS_HOTLINE_URL', 'https://988lifeline.org/'),
+    ],
+
 
 ];

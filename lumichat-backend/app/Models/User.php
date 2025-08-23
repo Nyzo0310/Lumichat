@@ -11,66 +11,36 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    // ---- Roles --------------------------------------------------------------
+    // ✅ Point Eloquent to your prefixed table
+    protected $table = 'tbl_users';
+
     public const ROLE_STUDENT   = 'student';
     public const ROLE_COUNSELOR = 'counselor';
     public const ROLE_ADMIN     = 'admin';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * Make sure you've added a `role` column via migration.
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
         'role',
+        'appointments_enabled',   // ✅
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'email_verified_at'   => 'datetime',
+        'password'            => 'hashed',
+        'appointments_enabled'=> 'boolean',  // ✅
     ];
 
-    // ---- Role helpers -------------------------------------------------------
-    public function isAdmin(): bool
-    {
-        return $this->role === self::ROLE_ADMIN;
-    }
+    public function isAdmin(): bool { return $this->role === self::ROLE_ADMIN; }
+    public function isCounselor(): bool { return $this->role === self::ROLE_COUNSELOR; }
+    public function canAccessAdmin(): bool { return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_COUNSELOR], true); }
 
-    public function isCounselor(): bool
-    {
-        return $this->role === self::ROLE_COUNSELOR;
-    }
-
-    /**
-     * Admin area access (admin OR counselor).
-     */
-    public function canAccessAdmin(): bool
-    {
-        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_COUNSELOR], true);
-    }
-
-    // ---- Relationships (optional but useful) -------------------------------
-    public function chatSessions()
-    {
-        return $this->hasMany(ChatSession::class);
-    }
-
-    public function chats()
-    {
-        return $this->hasMany(Chat::class);
-    }
+    public function chatSessions(){ return $this->hasMany(ChatSession::class); }
+    public function chats(){ return $this->hasMany(Chat::class); }
 }
