@@ -378,5 +378,6 @@
       applyMode();
     })();
   </script>
+@stack('scripts')
 </body>
 </html>

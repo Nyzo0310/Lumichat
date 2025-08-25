@@ -49,7 +49,6 @@
                                : 'bg-gray-100 text-gray-700 dark:bg-gray-700/40 dark:text-gray-200';
     @endphp
 
-    {{-- Countdown pill --}}
     <div class="mt-3">
       <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium {{ $countColor }}">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -93,12 +92,51 @@
       </div>
     </div>
 
-    <div class="mt-6">
+    {{-- Actions --}}
+    <div class="mt-6 flex items-center gap-3">
       <a href="{{ route('appointment.history') }}"
          class="inline-flex items-center rounded-lg bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
         Close
       </a>
+
+      @php
+        $canCancel = !in_array($appointment->status, ['canceled','completed']) && $start->gt($now);
+      @endphp
+      @if ($canCancel)
+        <form method="POST" action="{{ route('appointment.cancel', $appointment->id) }}"
+              onsubmit="return confirmStudentCancel(event, this)">
+          @csrf
+          @method('PATCH')
+          <button type="submit"
+                  class="inline-flex items-center rounded-lg bg-rose-600 px-4 py-2 text-white hover:bg-rose-700">
+            Cancel
+          </button>
+        </form>
+      @endif
     </div>
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function confirmStudentCancel(e, form) {
+  e.preventDefault();
+  Swal.fire({
+    icon: 'warning',
+    title: 'Cancel this appointment?',
+    text: 'This action cannot be undone.',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, cancel',
+    cancelButtonText: 'No, keep it',
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#6b7280',
+    reverseButtons: true,
+    focusCancel: true
+  }).then(res => {
+    if (res.isConfirmed) form.submit();
+  });
+  return false;
+}
+</script>
+@endpush

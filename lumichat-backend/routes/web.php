@@ -62,6 +62,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/appointment/slots/{counselor}', [AppointmentController::class, 'slots'])->name('appointment.slots');
     Route::get('/appointment/history',           [AppointmentController::class, 'history'])->name('appointment.history');
     Route::get('/appointment/view/{id}',         [AppointmentController::class, 'show'])->name('appointment.view');
+    Route::patch('/appointment/{id}/cancel', [AppointmentController::class, 'cancel'])
+    ->middleware('auth')
+    ->name('appointment.cancel');
 
     // ⬇️ Brought back: feature toggle via signed link
     Route::get('/features/enable-appointment', [FeaturesController::class, 'enableAppointment'])

@@ -95,34 +95,30 @@
             if (!$d && $m) $parts[] = "{$m}m";
             $countdown = $mins === 0 ? 'Starting now'
                         : ($mins > 0 ? ('Starts in '.implode(' ', $parts)) : (implode(' ', $parts).' ago'));
+
+            $styles = [
+              'pending'   => ['chip'=>'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200','dot'=>'bg-amber-500','pulse'=>true],
+              'confirmed' => ['chip'=>'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200','dot'=>'bg-blue-500','pulse'=>false],
+              'canceled'  => ['chip'=>'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200','dot'=>'bg-rose-500','pulse'=>false],
+              'completed' => ['chip'=>'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200','dot'=>'bg-emerald-500','pulse'=>false],
+            ];
+            $s = $styles[$row->status] ?? ['chip'=>'bg-gray-100 text-gray-700','dot'=>'bg-gray-400','pulse'=>false];
           @endphp
+
           <tr class="hover:bg-gray-50/60 dark:hover:bg-gray-700/30">
             <td class="px-4 py-3">{{ $row->id }}</td>
             <td class="px-4 py-3">{{ auth()->user()->name }}</td>
             <td class="px-4 py-3">{{ $row->counselor_name }}</td>
             <td class="px-4 py-3">
-              <div>{{ \Carbon\Carbon::parse($row->scheduled_at)->format('M d, Y · g:i A') }}</div>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {{ $countdown }}
-              </div>
+              <div>{{ $start->format('M d, Y · g:i A') }}</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $countdown }}</div>
             </td>
-
-            @php
-              $styles = [
-                'pending'   => ['chip'=>'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200','dot'=>'bg-amber-500','pulse'=>true],
-                'confirmed' => ['chip'=>'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200','dot'=>'bg-blue-500','pulse'=>false],
-                'canceled'  => ['chip'=>'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200','dot'=>'bg-rose-500','pulse'=>false],
-                'completed' => ['chip'=>'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200','dot'=>'bg-emerald-500','pulse'=>false],
-              ];
-              $s = $styles[$row->status] ?? ['chip'=>'bg-gray-100 text-gray-700','dot'=>'bg-gray-400','pulse'=>false];
-            @endphp
             <td class="px-4 py-3">
               <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium {{ $s['chip'] }}">
                 <span class="h-1.5 w-1.5 rounded-full {{ $s['dot'] }} {{ $s['pulse'] ? 'animate-pulse' : '' }}"></span>
                 {{ ucfirst($row->status) }}
               </span>
             </td>
-
             <td class="px-4 py-3 text-right">
               <a href="{{ route('appointment.view', $row->id) }}"
                  class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700">
@@ -144,3 +140,29 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Success toast from redirects (booking/cancel)
+  const successMsg = @json(session('status'));
+  if (successMsg) {
+    Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: successMsg,
+      timer: 2200,
+      showConfirmButton: false
+    });
+  }
+
+  // Generic errors
+  const pageErrors = @json($errors->all());
+  if (Array.isArray(pageErrors) && pageErrors.length) {
+    const html = '<ul style="text-align:left;margin:0;padding-left:1rem">' +
+                 pageErrors.map(i => `<li>• ${i}</li>`).join('') + '</ul>';
+    Swal.fire({ icon: 'error', title: 'Unable to proceed', html });
+  }
+});
+</script>
+@endpush
