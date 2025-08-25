@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    {{-- Actions --}}
+    {{-- Actions (No Cancel for Admin) --}}
     <div class="px-6 pb-6 flex items-center gap-3">
       <a href="{{ route('admin.appointments.index') }}"
          class="px-4 py-2 rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100">
@@ -118,18 +118,6 @@
           Done
         </button>
       </form>
-
-      {{-- Cancel --}}
-      <form method="POST" action="{{ route('admin.appointments.status', $appointment->id) }}"
-            onsubmit="return askAction(event, this, 'cancel')">
-        @csrf @method('PATCH')
-        <input type="hidden" name="action" value="cancel">
-        <button type="submit"
-          class="px-4 py-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          {{ $appointment->status === 'completed' ? 'disabled' : '' }}>
-          Cancel
-        </button>
-      </form>
     </div>
   </div>
 </div>
@@ -139,26 +127,20 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   function askAction(e, form, action) {
-    e.preventDefault(); // stop the native submit
+    e.preventDefault();
 
     const cfg = {
       confirm: {
         title: 'Confirm Appointment?',
         text: 'Are you sure you want to confirm this appointment?',
         icon: 'question',
-        confirmButtonColor: '#2563eb', // blue
+        confirmButtonColor: '#2563eb',
       },
       done: {
         title: 'Mark as Completed?',
         text: 'This will mark the appointment as done.',
         icon: 'success',
-        confirmButtonColor: '#059669', // emerald
-      },
-      cancel: {
-        title: 'Cancel Appointment?',
-        text: 'This action cannot be undone.',
-        icon: 'warning',
-        confirmButtonColor: '#dc2626', // red
+        confirmButtonColor: '#059669',
       }
     }[action] || {
       title: 'Are you sure?',
@@ -179,19 +161,13 @@
       reverseButtons: true,
       focusCancel: true
     }).then(res => {
-      if (res.isConfirmed) {
-        // native submit (does NOT trigger onsubmit again)
-        form.submit();
-      }
+      if (res.isConfirmed) form.submit();
       return false;
     });
   }
 
-  // Optional flash message support
   @if (session('swal'))
     Swal.fire(@json(session('swal')));
   @endif
 </script>
 @endpush
-
-

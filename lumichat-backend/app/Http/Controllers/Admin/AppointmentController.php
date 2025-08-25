@@ -12,12 +12,12 @@ class AppointmentController extends Controller
     public function index(Request $r)
     {
         // Read filters with safe defaults
-        $status = in_array($r->query('status'), ['pending','confirmed','canceled','completed']) 
-            ? $r->query('status') 
+        $status = in_array($r->query('status'), ['pending','confirmed','canceled','completed'])
+            ? $r->query('status')
             : 'all';
 
-        $period = in_array($r->query('period'), ['all','upcoming','today','this_week','this_month','past']) 
-            ? $r->query('period') 
+        $period = in_array($r->query('period'), ['all','upcoming','today','this_week','this_month','past'])
+            ? $r->query('period')
             : 'all';
 
         $q = trim((string) $r->query('q', ''));
@@ -35,11 +35,7 @@ class AppointmentController extends Controller
                 'c.name as counselor_name',
                 'u.name as student_name',
             ])
-            // status filter
-            ->when($status !== 'all', function ($qB) use ($status) {
-                $qB->where('a.status', $status);
-            })
-            // period filter
+            ->when($status !== 'all', fn($qB) => $qB->where('a.status', $status))
             ->when($period !== 'all', function ($qB) use ($period, $now) {
                 if ($period === 'upcoming') {
                     $qB->where('a.scheduled_at', '>=', $now);
@@ -57,10 +53,7 @@ class AppointmentController extends Controller
                     $qB->where('a.scheduled_at', '<', $now);
                 }
             })
-            // search counselor name
-            ->when($q !== '', function ($qB) use ($q) {
-                $qB->where('c.name', 'like', '%'.$q.'%');
-            })
+            ->when($q !== '', fn($qB) => $qB->where('c.name', 'like', '%'.$q.'%'))
             ->orderBy('a.scheduled_at', 'desc')
             ->paginate(10)
             ->withQueryString();
@@ -80,10 +73,10 @@ class AppointmentController extends Controller
             ->join('tbl_users as u', 'u.id', '=', 'a.student_id')
             ->select([
                 'a.*',
-                'c.name as counselor_name',
+                'c.name  as counselor_name',
                 'c.email as counselor_email',
                 'c.phone as counselor_phone',
-                'u.name as student_name',
+                'u.name  as student_name',
                 'u.email as student_email',
             ])
             ->where('a.id', $id)
@@ -96,14 +89,14 @@ class AppointmentController extends Controller
 
     public function updateStatus(Request $r, int $id)
     {
+        // Admin may only confirm or mark done (no cancel)
         $r->validate([
-            'action' => 'required|in:confirm,done,cancel',
+            'action' => 'required|in:confirm,done',
         ]);
 
         $map = [
             'confirm' => 'confirmed',
             'done'    => 'completed',
-            'cancel'  => 'canceled',
         ];
         $newStatus = $map[$r->input('action')];
 
