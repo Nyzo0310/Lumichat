@@ -20,7 +20,6 @@
                transition motion-safe:hover:-translate-y-0.5 hover:shadow-md
                hover:border-sky-400 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-200">
 
-        {{-- Info tooltip (no-JS) --}}
         <details data-kpi class="group absolute right-2.5 top-2.5 z-50">
           <summary class="select-none list-none inline-flex items-center justify-center w-7 h-7 rounded-full
                           bg-white/80 ring-1 ring-sky-200 text-sky-700 hover:bg-white cursor-pointer
@@ -29,8 +28,6 @@
               <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm.75 15h-1.5v-6h1.5Zm0-7.5h-1.5v-1.5h1.5Z"/>
             </svg>
           </summary>
-
-          <!-- tooltip -->
           <div class="select-none absolute right-0 top-9 w-64 rounded-md bg-white/95 text-slate-800
                       text-xs px-3 py-2 shadow-xl ring-1 ring-slate-200 backdrop-blur-sm
                       pointer-events-none opacity-0 translate-y-1 scale-95
@@ -58,7 +55,7 @@
         </div>
       </div>
 
-      {{-- Critical Cases --}}
+      {{-- Critical Cases (High-Risk Chatbot Sessions / Distinct users) --}}
       <div
         class="relative rounded-2xl border-[1px] p-5 bg-rose-50 border-rose-300 shadow-sm
                transition motion-safe:hover:-translate-y-0.5 hover:shadow-md
@@ -72,7 +69,6 @@
               <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm.75 15h-1.5v-6h1.5Zm0-7.5h-1.5v-1.5h1.5Z"/>
             </svg>
           </summary>
-
           <div class="select-none absolute right-0 top-9 w-72 rounded-md bg-white/95 text-slate-800
                       text-xs px-3 py-2 shadow-xl ring-1 ring-slate-200 backdrop-blur-sm
                       pointer-events-none opacity-0 translate-y-1 scale-95
@@ -81,7 +77,7 @@
             <span class="absolute -top-1 right-3 h-3 w-3 rotate-45 bg-white ring-1 ring-slate-200"></span>
             <div class="font-semibold text-slate-700">Critical Cases</div>
             <p class="leading-snug text-slate-600 mt-0.5">
-              Count of appointments flagged urgent/critical (e.g., via status/notes). Always shown as “Requires attention”.
+              Students with at least one <b>High-risk</b> chatbot session (distinct users). Requires attention.
             </p>
           </div>
         </details>
@@ -93,7 +89,10 @@
           <div class="min-w-0">
             <div class="text-sm text-slate-600 font-medium">Critical Cases</div>
             <div class="mt-1 text-3xl font-bold text-slate-900" id="kpi-critical-number">{{ number_format($criticalCasesTotal ?? 0) }}</div>
-            <div class="mt-0.5 text-xs text-slate-500">Requires attention</div>
+            <div class="mt-0.5 text-xs 
+                {{ ($criticalCasesTotal ?? 0) > 0 ? 'text-rose-600 font-semibold' : 'text-slate-500' }}">
+                Requires attention
+            </div>
           </div>
         </div>
       </div>
@@ -112,7 +111,6 @@
               <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm.75 15h-1.5v-6h1.5Zm0-7.5h-1.5v-1.5h1.5Z"/>
             </svg>
           </summary>
-
           <div class="select-none absolute right-0 top-9 w-64 rounded-md bg-white/95 text-slate-800
                       text-xs px-3 py-2 shadow-xl ring-1 ring-slate-200 backdrop-blur-sm
                       pointer-events-none opacity-0 translate-y-1 scale-95
@@ -152,7 +150,6 @@
               <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm.75 15h-1.5v-6h1.5Zm0-7.5h-1.5v-1.5h1.5Z"/>
             </svg>
           </summary>
-
           <div class="select-none absolute right-0 top-9 w-72 rounded-md bg-white/95 text-slate-800
                       text-xs px-3 py-2 shadow-xl ring-1 ring-slate-200 backdrop-blur-sm
                       pointer-events-none opacity-0 translate-y-1 scale-95
@@ -281,9 +278,16 @@
       @else
         <ul class="divide-y divide-slate-100" id="list-recent-chats">
           @foreach($recentChatSessions as $s)
+            @php
+              $risk = strtolower($s->risk_level ?? 'low');
+              $dotClass =
+                  ($risk === 'high'      ? 'bg-rose-500' :
+                  ($risk === 'moderate' ? 'bg-amber-500' :
+                  'bg-indigo-500')); // default for low/unknown
+            @endphp
             <li class="py-3 flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                <span class="w-2 h-2 rounded-full {{ $dotClass }}"></span>
                 <div>
                   <span class="font-medium">
                     {{ $s->topic_summary ?: 'Starting conversation…' }}
@@ -305,46 +309,36 @@
 
 @push('styles')
 <style>
-  /* Hide the default marker on details/summary */
+  /* Hide default marker on details/summary */
   details > summary::-webkit-details-marker { display: none; }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-/* ---------- Dashboard live refresh (no-cache + jitter-free timeAgo) ---------- */
+/* ---------- Dashboard live refresh ---------- */
 (function(){
   const endpoint = "{{ route('admin.dashboard.stats') }}";
   const nf  = new Intl.NumberFormat();
   const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
 
-  // Round toward zero to avoid "6d -> 7d" jitter when near boundaries
   function timeAgo(iso){
     if (!iso) return '';
     const thenMs = new Date(iso).getTime();
     const diffSec = (thenMs - Date.now()) / 1000;
     const roundTZ = (n) => (n < 0 ? Math.ceil(n) : Math.floor(n));
-
     const units = [
-      ['year',   31536000],
-      ['month',  2592000],
-      ['week',   604800],
-      ['day',    86400],
-      ['hour',   3600],
-      ['minute', 60],
-      ['second', 1],
+      ['year',31536000],['month',2592000],['week',604800],
+      ['day',86400],['hour',3600],['minute',60],['second',1],
     ];
-    for (const [unit, sec] of units) {
-      const value = diffSec / sec;
-      if (Math.abs(value) >= 1 || unit === 'second') {
-        return rtf.format(roundTZ(value), unit);
-      }
+    for (const [u, s] of units) {
+      const v = diffSec / s;
+      if (Math.abs(v) >= 1 || u === 'second') return rtf.format(roundTZ(v), u);
     }
   }
 
   const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 
-  // ---- status color mapping for live items ----
   function statusDot(status) {
     const s = (status || '').toLowerCase();
     if (s.includes('cancel'))   return 'bg-rose-500';
@@ -390,11 +384,19 @@
       </li>`;
   }
 
-  function liRecentChat(s){
+  // Server-rendered "Recent Chat Sessions" already has colored dots.
+  // The live-refresh list remains neutral (indigo) unless you also send risk in JSON.
+
+    function liRecentChat(s){
+    const risk = (s.risk_level || 'low').toLowerCase();
+    let dot = 'bg-indigo-500'; // default low
+    if (risk === 'high') dot = 'bg-rose-500';
+    else if (risk === 'moderate') dot = 'bg-amber-500';
+
     return `
       <li class="py-3 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+          <span class="w-2 h-2 rounded-full ${dot}"></span>
           <div>
             <span class="font-medium">${ esc(s.topic_summary || 'Starting conversation…') }</span>
             ${ s.actor ? `<span class="text-xs text-slate-400 ml-2">${ esc(s.actor) }</span>` : '' }
@@ -404,17 +406,17 @@
       </li>`;
   }
 
-  let inflight; // avoid overlapping polls
+
+  let inflight;
   async function refresh(){
     try{
-      // cancel previous if still running
       if (inflight) inflight.abort();
       inflight = new AbortController();
 
       const res = await fetch(`${endpoint}?t=${Date.now()}`, {
         headers:{'X-Requested-With':'XMLHttpRequest'},
         credentials:'same-origin',
-        cache:'no-store',                 // <— bypass browser cache
+        cache:'no-store',
         signal: inflight.signal
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -422,12 +424,11 @@
 
       // KPIs
       const k = data.kpis || {};
-      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = nf.format(val ?? 0); };
-      set('kpi-appointments', k.appointmentsTotal);
-      set('kpi-counselors',   k.activeCounselors);
-      set('kpi-sessions',     k.chatSessionsThisWeek);
-      const critNum = document.getElementById('kpi-critical-number');
-      if (critNum) critNum.textContent = nf.format(k.criticalCasesTotal ?? 0);
+      const setNum = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = nf.format(val ?? 0); };
+      setNum('kpi-appointments',      k.appointmentsTotal);
+      setNum('kpi-counselors',        k.activeCounselors);
+      setNum('kpi-sessions',          k.chatSessionsThisWeek);
+      setNum('kpi-critical-number',   k.criticalCasesTotal); // <-- unified key
 
       const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text || '= Same as last week'; };
       setText('kpi-appointments-change', k.appointmentsTrend);
@@ -456,7 +457,7 @@
   }
 
   setTimeout(refresh, 600);
-  setInterval(refresh, 5000); // poll a bit faster
+  setInterval(refresh, 5000);
 })();
 </script>
 @endpush

@@ -40,7 +40,7 @@ class DashboardController extends Controller
             'activeCounselors'      => $data['kpis']['activeCounselors'],
             'chatSessionsThisWeek'  => $data['kpis']['chatSessionsThisWeek'],
 
-            // KPI trend labels (no percentages)
+            // KPI trend labels
             'appointmentsTrend'     => $data['kpis']['appointmentsTrend'],
             'sessionsTrend'         => $data['kpis']['sessionsTrend'],
 
@@ -109,14 +109,13 @@ class DashboardController extends Controller
         $lastEnd     = $now->copy()->subWeek()->endOfWeek();
 
         /* ---------- KPIs: Appointments ---------- */
-
         $apptTable = $this->resolveApptTable();
         $appointmentsTotal = $apptTable ? DB::table($apptTable)->count() : 0;
 
-        $apptWeekCol = $apptTable ? $this->resolveApptWeekColumn($apptTable) : null;
-
+        $apptWeekCol   = $apptTable ? $this->resolveApptWeekColumn($apptTable) : null;
         $apptsThisWeek = 0;
         $apptsLastWeek = 0;
+
         if ($apptTable && $apptWeekCol) {
             $apptsThisWeek = DB::table($apptTable)
                 ->whereBetween($apptWeekCol, [$startOfWeek, $endOfWeek])
@@ -129,16 +128,14 @@ class DashboardController extends Controller
         $appointmentsTrend = $this->compareTrend($apptsThisWeek, $apptsLastWeek);
 
         /* ---------- KPIs: Active Counselors ---------- */
-
         $activeCounselors = Schema::hasTable('tbl_counselors')
             ? DB::table('tbl_counselors')
-                ->when(Schema::hasColumn('tbl_counselors', 'status'), fn ($q) => $q->where('status', 'active'))
+                ->when(Schema::hasColumn('tbl_counselors', 'status'),   fn ($q) => $q->where('status', 'active'))
                 ->when(Schema::hasColumn('tbl_counselors', 'is_active'), fn ($q) => $q->orWhere('is_active', 1))
                 ->count()
             : 0;
 
         /* ---------- KPIs: Chat Sessions ---------- */
-
         $sessionsThisWeek = 0;
         $sessionsLastWeek = 0;
         if (Schema::hasTable('chat_sessions')) {
@@ -150,27 +147,16 @@ class DashboardController extends Controller
         }
         $sessionsTrend = $this->compareTrend($sessionsThisWeek, $sessionsLastWeek);
 
-        /* ---------- KPIs: Critical Cases ---------- */
-
+        /* ---------- KPI: Critical Cases (from chat_sessions) ---------- */
+        // Count DISTINCT users who currently have at least one HIGH-risk chat session.
         $criticalCasesTotal = 0;
-        if ($apptTable) {
-            $criticalCasesTotal = DB::table($apptTable)->where(function ($q) use ($apptTable) {
-                if (Schema::hasColumn($apptTable, 'flag')) {
-                    $q->orWhere('flag', 1);
-                }
-                if (Schema::hasColumn($apptTable, 'status')) {
-                    $q->orWhereIn('status', ['urgent', 'critical']);
-                }
-                if (Schema::hasColumn($apptTable, 'notes')) {
-                    $q->orWhere('notes', 'like', '%suicid%')
-                      ->orWhere('notes', 'like', '%self-harm%')
-                      ->orWhere('notes', 'like', '%panic%');
-                }
-            })->count();
+        if (Schema::hasTable('chat_sessions')) {
+            $criticalCasesTotal = DB::table('chat_sessions')
+                ->where('risk_level', 'high')
+                ->count();
         }
 
         /* ---------- Activities ---------- */
-
         $coalesceActor = function (string $table, string $alias): string {
             $parts = [];
             if (Schema::hasColumn($table, 'name'))       $parts[] = "$alias.name";
@@ -233,10 +219,8 @@ class DashboardController extends Controller
         /* ---------- Recent Appointments (NEWEST FIRST) ---------- */
         $recentAppointments = [];
         if ($apptTable) {
-            // Prefer created_at for "recent" (brand-new shows immediately).
             $orderCol = Schema::hasColumn($apptTable, 'created_at') ? 'created_at' : null;
 
-            // If table has no created_at, fall back to id, otherwise to any schedule column.
             if (!$orderCol) {
                 if (Schema::hasColumn($apptTable, 'id')) {
                     $orderCol = 'id';
@@ -250,8 +234,6 @@ class DashboardController extends Controller
             $q = DB::table($apptTable);
             if ($orderCol) {
                 $q->orderByDesc($orderCol);
-            } else {
-                $q->orderByDesc(DB::raw('1')); // fallback no-op
             }
 
             $rows = $q->limit(5)->get();
@@ -270,7 +252,6 @@ class DashboardController extends Controller
         }
 
         /* ---------- Recent Chat Sessions ---------- */
-
         $recentChatSessions = [];
         if (Schema::hasTable('chat_sessions')) {
             $cq = DB::table('chat_sessions as cs')->orderByDesc('cs.created_at')->limit(5);
@@ -285,19 +266,20 @@ class DashboardController extends Controller
                 $actorExpr = "'User'";
             }
 
-            $recentChatSessions = $cq->selectRaw("cs.created_at, cs.topic_summary, $actorExpr as actor_name")
-                ->get()
-                ->map(fn ($r) => [
-                    'created_at'    => Carbon::parse($r->created_at)->toIso8601String(),
-                    'topic_summary' => $r->topic_summary ?: 'Starting conversation…',
-                    'actor'         => $r->actor_name,
-                ])->all();
+            $recentChatSessions = $cq->selectRaw("cs.created_at, cs.topic_summary, cs.risk_level, $actorExpr as actor_name")
+            ->get()
+            ->map(fn ($r) => [
+                'created_at'    => Carbon::parse($r->created_at)->toIso8601String(),
+                'topic_summary' => $r->topic_summary ?: 'Starting conversation…',
+                'risk_level'    => $r->risk_level ?? 'low',
+                'actor'         => $r->actor_name,
+            ])->all();
         }
 
         return [
             'kpis' => [
                 'appointmentsTotal'    => $appointmentsTotal,
-                'criticalCasesTotal'   => $criticalCasesTotal,
+                'criticalCasesTotal'   => $criticalCasesTotal,   // ← now based on chat_sessions HIGH risk (distinct users)
                 'activeCounselors'     => $activeCounselors,
                 'chatSessionsThisWeek' => $sessionsThisWeek,
                 'appointmentsTrend'    => $appointmentsTrend,
