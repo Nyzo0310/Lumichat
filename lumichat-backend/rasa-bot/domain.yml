@@ -1,305 +1,47 @@
 version: "3.1"
-intents:
-  - greet
-  - goodbye
-  - affirm
-  - deny
-  - mood_unhappy
-  - mood_anxious
-  - academic_stress
-  - low_self_esteem
-  - loneliness
-  - relationship_issues
-  - family_issues
-  - burnout
-  - suicidal_thoughts
-  - bullying
-  - homesickness
-  - body_image
-  - grief
-  - peer_pressure
-  - overthinking
-  - sleep_problems
-  - time_management
-  - thanks
-  - need_more_help
-  - want_to_talk_counselor
-  - out_of_scope
-
-responses:
-  utter_greet:
-    - text: "Hi, I'm LumiCHAT! How can I support you today?"
-    - text: "Hello! How are you feeling? I'm here to listen."
-    - text: "Kumusta! Unsa akong matabang nimo karon?"
-    - text: "Maayong adlaw! Kumusta man ka karon? Naa ra ko maminaw nimo."
-    - text: "Oi, kumusta! Sabta nga naa ra ko para nimo kung gusto nimo istorya."
-    - text: "Hi, kumusta ka? Naa ko diri kung gusto nimo makigstorya."
-    - text: "Hey! Ready ko maminaw nimo—unsa man atong istoryahan?"
-
-  utter_goodbye:
-    - text: "Take care! If you ever need to talk, I’m here."
-    - text: "Goodbye! Remember, you matter."
-    - text: "See you next time. Stay strong!"
-    - text: "Amping pirmi! Balik lang kung gusto nimo istorya."
-    - text: "Sige, amping. Naa ra ko diri."
-    - text: "Babay! Amping kanunay."
-
-  utter_ask_feeling:
-    - text: "Would you like to tell me more about how you’re feeling?"
-    - text: "Can you share more about what’s on your mind?"
-    - text: "Pwede nimo i-share unsa imong gibati karon?"
-    - text: "Gusto ka mosulti unsay nakapabug-at sa imo huna-huna?"
-    - text: "Open ra kaayo ko, unsa man jud imong nabati karon?"
-
-  utter_ask_need_more_help:
-    - text: "Do you need more support or want to talk about something else?"
-    - text: "Would you like more advice or help with another topic?"
-    - text: "Nanginahanglan pa ka og dugang nga tabang?"
-    - text: "Gusto pa ka makigstorya ug lain pa nga problema?"
-
-  utter_thanks:
-    - text: "You’re welcome! I’m always here if you want to talk."
-    - text: "No problem—glad I could help!"
-    - text: "Walay sapayan! Naa ra ko para nimo."
-    - text: "Ayaw kabalaka, willing ko maminaw nimo."
-    - text: "Salamat pud nimo sa pag-share!"
-
-  utter_fallback:
-  - text: "I'm here to support you about mental health, school stress, and things related to your well-being. I might not have all the answers, especially for questions outside those topics, but I'll do my best to help with anything you share."
-  - text: "Sorry, I can only answer based on what I’ve been trained on, mostly about mental health and student concerns. If your question isn’t related, I might not be able to help, but I’m still here to listen."
-  - text: "Pasensya kaayo, limitado ra akong matubag kay base ra man ko sa mga impormasyon nga naa diri. Kung mahitungod sa mental health or school life imong concern, matabangan tika, pero basin dili ko makatubag sa ubang pangutana."
-  - text: "Naa ra ko para maminaw ug motabang kung bahin sa imong gibati, stress, o problema sa school. Kung lahi ang imong pangutana, basin di nako matubag, pero pwede gihapon ka magshare."
-
-  utter_offer_counselor:
-    - text: "Would you like to set an appointment with a real counselor?"
-    - text: "I can help you contact our guidance office or a professional if you want."
-    - text: "Gusto ka makigkita sa guidance counselor? Tabangan tika og schedule."
-    - text: "Pwede tika matabangan para makig-istorya ka sa professional."
-    - text: "Okay ra nimo nga i-connect tika sa school counselor?"
-
-  utter_support_mood_unhappy:
-  - text: "I'm sorry you're feeling this way. It's completely normal to experience sadness at times. If you’re comfortable, you can share more about what’s bothering you—I'm here to listen."
-  - text: "It’s okay to feel down sometimes. If you’d like to talk about what’s making you sad, I’m ready to listen whenever you’re ready."
-  - text: "Pasensya na nga na-feel nimo ni karon. Kasagaran nato makasinati gyud og kasubo usahay. Kung okay ra nimo, pwede ra kaayo nimo i-share nako."
-  - text: "Normal ra gyud nga ma-feel nato ang sadness usahay. Kung gusto nimo mag-open up, naminaw ra ko nimo."
-
-  utter_coping_mood_unhappy:
-  - text: "You might find it helpful to write about your thoughts, listen to music that uplifts you, or connect with a friend or family member. Let me know if you’d like more suggestions."
-  - text: "Some people find comfort in expressing their feelings through journaling, reaching out to someone they trust, or simply taking a moment to relax. If you want more ideas, I can share some."
-  - text: "Makatabang usahay ang pag-share sa imong gibati sa kasaligan nga tao, pagsulat sa imong hunahuna, o pagpaminaw og music nga makarelax nimo."
-  - text: "Pwede pud nimo sulayan og pahulay gamay, o buhaton ang mga butang nga makaparelax nimo. Kung gusto pa ka og lain nga suggestions, sulti lang."
-
-  utter_support_mood_anxious:
-  - text: "I’m really sorry you’re feeling anxious. That feeling can be very overwhelming and sometimes even hard to explain to others. But please know that you’re not alone—many people experience anxiety, and it doesn’t mean something is wrong with you. Sometimes, talking about what’s making you anxious can help lighten the load, even just a little bit. If you feel comfortable, I’m here to listen to anything you’d like to share. You can start wherever you want—no pressure at all."
-  - text: "It’s normal to feel anxious at times, especially when we face new situations or a lot of pressure. What you’re feeling is valid, and it’s okay to take your time before opening up. If you want to talk about what’s on your mind or what triggers your anxiety, I’m here for you, and there’s no need to rush. Even just putting your feelings into words can help make things a bit clearer."
-  - text: "Lisod gyud usahay ang feeling nga murag pirme ta kabalaka. Daghan kaayo sa atoa makasinati og anxiety—dili lang ikaw. Naa ra ko diri para maminaw nimo kung gusto nimo mag-share. Dili kinahanglan nga bug-at imong ipagawas tanan, bisan ginagmay lang, okay ra kaayo. Paminawon tika walay pag-judge, ug respeto nako kung di pa ka ready mo-open up."
-  - text: "Normal ra kaayo ang mabati og kulba o kabalaka labi na kung daghan tag huna-huna or problema. Ayaw kahadlok nga mag-open up kung andam na ka, kay importante nga makabalo ka nga naay maminaw nimo. Kung gusto nimo isulti unsay naka-trigger sa imong anxiety, ready ko maminaw anytime."
-
-  utter_coping_mood_anxious:
-  - text: "There are several ways to help manage anxiety, and sometimes it takes trying a few different things to find what works for you. One technique is deep breathing: take slow, deep breaths in and out, focusing on each breath. Another helpful method is grounding—try to notice five things you can see, four you can touch, three you can hear, two you can smell, and one you can taste. If your mind feels too busy, you might want to take a short walk, stretch, or even listen to calming music. Remember, it’s also okay to ask for support from someone you trust. If you’d like, I can share more tips or we can talk about other ways to handle anxiety together."
-  - text: "Managing anxiety isn’t always easy, but small steps can make a difference. When you notice your thoughts are racing, try to pause for a moment and take a few slow, deep breaths. Focusing on the present—like naming objects in your room or listening to sounds around you—can also help you feel grounded. You can also try writing your feelings down or doing a simple activity that you enjoy. And always remember: reaching out to a friend or a family member can really help too. If you want more suggestions or just want to keep talking, I’m here for you."
-  - text: "Makatabang gyud usahay kung maghinay-hinay lang ta pagginhawa. Sulayi og count sa imong breathing: inhale og lima ka segundos, hold for a bit, then exhale og hinay-hinay. Kung pirme busy imong utok, tan-awa ang mga butang palibot nimo—unsa imong makit-an, madungog, o mabati? Pwede pud ka maglakaw-lakaw gamay o maminaw og kalma nga music. Ayaw kalimot nga pwede ra kaayo nimo istoryahan ang imong amigo/amiga kung kinahanglan ka og support. Naa ra ko para maminaw nimo pirmi."
-  - text: "Kung permi ka maguol, suwayi og buhat og mga butang nga makarelax nimo—bisan simple lang, sama sa pagtan-aw og funny video, pag-sketch, o pagdula og game. Usahay ang pag-message sa amigo o pag-journal makatabang kaayo para ma-express nimo imong gibati. Kung gusto pa ka makadungog og daghan pang paagi, or gusto ra ka magpadayon og istorya, open ra ko maminaw."
-
-
-  utter_support_academic_stress:
-  - text: "A lot of students experience academic stress, so you’re definitely not alone in feeling this way. Balancing schoolwork, projects, and deadlines can feel really overwhelming at times. If you’d like to talk more about what’s making things difficult for you in school right now, I’m here to listen and support you."
-  - text: "It’s perfectly normal to feel stressed out by school, especially when you have a lot on your plate. If you want to share more about the subjects or assignments that are weighing you down, we can talk about ways to manage them together."
-  - text: "Dili sayon ang school pressure, labi na kung daghan ka ug ginabuhat ug daghan pa deadlines. Daghan pud kaayo ang naka-feel ani, so di ra ikaw. Kung okay ra nimo, pwede nimo i-share unsa jud ang pinaka nakapabug-at sa imoha karon."
-  - text: "Kasabot ra ko nga lisod usahay ang mag-manage sa tanan school requirements ug activities. Kung gusto nimo hisgutan, open ra ko maminaw unsa nga part sa school ang naghatag og stress nimo."
-
-  utter_coping_academic_stress:
-  - text: "Sometimes it helps to break big assignments into smaller, more manageable steps, so you don’t feel overwhelmed by everything at once. Making a simple schedule with short breaks in between tasks can also help your mind rest. Don’t hesitate to reach out to classmates or teachers if you need help—asking for support is always okay."
-  - text: "One approach is to organize your tasks and prioritize the most important or urgent ones. Try to give yourself short breaks so you don’t burn out, and remember, you’re allowed to ask for help from your friends or teachers whenever things get too much."
-  - text: "Pwede nimo i-lista tanan buhaton nimo, unya buhata gamay-gamay lang para dili kaayo bug-at. Pahuway pud og gamay kung gikapoy na ka, ug ayaw kaulaw mangayo og tabang sa imong classmates o teacher kung lisod na kaayo."
-  - text: "Ayaw pugsa ang imong kaugalingon kung kapoy na. Pwede ra gyud nimo hunahunaan nga hinay-hinayon lang ang pagtrabaho, and okay ra mangayo og advice or support sa uban kung kinahanglan nimo."
-
-
-  utter_support_low_self_esteem:
-  - text: "Struggling with low self-esteem can be really difficult, and it’s something a lot of people go through at different times. Remember, you’re not alone—your feelings are valid. If you’d like to talk about what’s affecting your confidence or what’s been weighing on you lately, I’m here to listen and support you."
-  - text: "It can be really tough when you don’t feel confident about yourself, but reaching out already shows a lot of courage. If you feel okay sharing, we can talk about what’s making you doubt yourself or what situations have made you feel this way."
-  - text: "Lisod gyud usahay kung murag kulang ta og self-confidence, pero kabalo ka, normal ra gyud na usahay labi na kung naay pressures. Kung gusto nimo istoryahan unsa ang nakaapekto sa imong self-esteem, open ra ko maminaw nimo."
-  - text: "Dili lalim nga murag wala kay kumpiyansa sa imong kaugalingon, pero maayo kaayo nga nisulti ka about ani. Pwede nimo i-share nako kung unsa imong nabati o unsa nga sitwasyon ang nakapabati nimo ani?"
-
-  utter_coping_low_self_esteem:
-  - text: "One thing that might help is to try listing down some of your strengths or things you like about yourself, no matter how small. Celebrate your little achievements and remind yourself that progress is different for everyone. It can also help to avoid comparing yourself to others—focus on your own journey."
-  - text: "Building self-esteem takes time, so try to be gentle with yourself. You could keep a journal of positive things about yourself or moments when you felt proud, and read them whenever you’re feeling low. It’s also important to recognize that everyone has their own pace and struggles, so there’s no need to measure yourself against others."
-  - text: "Pwede ka magsugod og isulat ang imong mga nindot nga qualities, maski ginagmay ra, kay makatabang na siya para makahinomdom ka nga naay daghan nimo ma-proud. Pag-celebrate pud maski gamay ra nga success, ug ayaw sige compare sa imong kaugalingon sa uban."
-  - text: "Hinay-hinay lang gyud. Sulayi og huna-huna unsay imong mga na-achieve, bisan simple ra, ug isulat nimo para makita nimo nga nag-progress ka. Dili kinahanglan nga mag-compare sa uban kay lahi-lahi gyud tag journey."
-
-
-  utter_support_loneliness:
-  - text: "Feeling lonely is actually something a lot of people go through, even if it sometimes feels like you're the only one. It's a brave step to reach out and talk about it, and that already shows strength. If you want, we can talk about what’s making you feel this way or explore some ways to help you feel more connected to others."
-  - text: "You’re not alone in feeling lonely—many people experience it at different times in their lives, even if it’s not obvious on the outside. If you want to share more about what’s making you feel isolated, or if you’d like some suggestions on how to feel more connected, I’m here for you."
-  - text: "Daghan gyud kaayo ang makasinati og pagkainusara, bisag dili sila mo-share pirmi. Salamat gyud kaayo sa pag-open up ani, kay importante nga naay makadungog sa imong gibati. Kung gusto ka, pwede nato hisgutan unsa ang nakapabati nimo ani or unsaon para dili kaayo ka mag-inusara."
-  - text: "Salamat nga nisalig ka ug nag-share sa imong gibati. Dili lalim mabati og inusara, pero normal ra kaayo na, labi na kung naay daghang bag-ong butang sa kinabuhi. Gusto ka makat-on og mga paagi para mas ma-feel nimo nga naay kauban?"
-
-  utter_coping_loneliness:
-  - text: "Sometimes reaching out, even with a simple message to a friend or joining a group with similar interests, can help ease feelings of loneliness. Trying a new hobby or activity—whether online or in person—can also help you meet new people and build connections. Remember, small steps are already progress."
-  - text: "Building new connections can start with little things, like joining a club or group activity, or even just saying hello to someone in class. You might find it helpful to reconnect with old friends or family, or spend time on a hobby you enjoy. If you’re interested, I can suggest more ideas."
-  - text: "Pwede ka mag-try og apil og organization or club sa school, or mangumusta lang bisan chat sa imo amigo/amiga. Usahay makatabang sab ang pag-try og new hobby, bisag mag-drawing, magluto, or unsa pa nga wala nimo nasuwayan sauna. Bisan simple nga panagsaba sa uban makatabang na para dili kaayo mabati ang kamingaw."
-  - text: "Sulayi og reach out sa mga tawo nga kasaligan nimo, maski online lang sa chat o tawag. Puhon, makakita ra ka og group nga imong ma-enjoyan. Pwede pud nimo buhaton imong hilig or mag-explore og bag-ong activity aron makadungag og kaila ug experience."
-
-
-  utter_support_relationship_issues:
-  - text: "Relationships—whether with friends, family, or a partner—can get really complicated sometimes, and it’s completely normal to feel hurt or confused when things go wrong. If you want to talk about what happened or just need someone to listen, I’m here for you. You don’t have to figure everything out on your own."
-  - text: "It can be really tough to deal with issues in relationships, especially when you care a lot about someone. If you feel comfortable, you can share more about the situation, or we can just talk about how you’re feeling right now."
-  - text: "Lisod sab gyud ang mga away sa love life o friendship, labi na kung importante nimo ang tao. Kung ganahan ka mo-share unsa jud nahitabo, or kung gusto lang nimo nga naay maminaw nimo, open ra ko."
-  - text: "Dili lalim mag-atubang og problema sa relasyon, whether sa friends o uyab. Nindot gyud usahay nga ma-express lang nimo imong gibati. Gusto ka mag-open up or mag-share unsa imong experience?"
-
-  utter_coping_relationship_issues:
-  - text: "It can take time to heal after problems or misunderstandings in a relationship. Be gentle with yourself and allow yourself to feel whatever you need to feel. Sometimes talking to a trusted friend or writing your feelings down can help clear your mind. Focusing on self-care—like getting enough rest or doing things you enjoy—can also make a big difference."
-  - text: "Remember, it’s okay to set boundaries and prioritize your own well-being. Take the time you need to process your emotions, and don’t hesitate to reach out to someone you trust for support. Engaging in activities that make you feel good about yourself, even simple things, can help as you move forward."
-  - text: "Hatagi imong kaugalingon og igong panahon para makarecover. Ayaw pugsa nga okay dayon ka. Mas maayo pud kung makastorya ka sa close nimo nga tao para ma-express nimo imong gibati. Ayaw kalimti nga importante ang self-care, maski magpahuway lang or buhaton nimo imong ganahan."
-  - text: "Dili kinahanglan nga paspas ra imong pag-move on. Himoa ang mga butang nga makaparelax nimo—pwede maglakaw-lakaw, magbasa, magdula, or magchat sa amigo. Sulti lang pud kung gusto pa nimo og tips o advice."
-
-
-  utter_support_family_issues:
-  - text: "Family problems can really affect how we feel and see the world. It’s normal if you sometimes feel sad, angry, or even confused about the situation at home. You might feel like no one understands, but you don’t have to go through this alone. If you’re ready to talk, I’m here to listen without judgment—whatever you want to share, even if it’s just a little bit or just how you feel today. Sometimes, just letting your feelings out, even in small pieces, can help lighten the load."
-  - text: "I know that talking about issues at home can feel heavy or even scary, but reaching out is already a brave first step. You don’t have to have all the answers or explain everything perfectly. You can tell me about what’s happening, or just describe how it’s making you feel right now. No matter how big or small your worries seem, I’m here for you, and we can take things one step at a time."
-  - text: "When our family is going through tough times, it can make everything else—school, friends, even hobbies—feel more difficult. If you need someone to just listen, I can be here for you. You don’t have to talk about the details unless you want to. Sometimes, even just putting your feelings into words, or sharing what you wish could change, can help ease your mind. Remember, you are not alone in this."
-  - text: "Lisod gyud kaayo usahay ang feeling kung naay problema sa pamilya. Bisan di nato masulti tanan, normal ra nga masakitan, maglibog, o mawad-an og gana. Importante nga naay maminaw nimo. Kung ready naka, open ra ko maminaw nimo bisan unsa pa imong gusto i-share. Walay paghusga diri—bisan unsa imong nabati, respeto nako na."
-  - text: "Sa tinuod lang, dili lalim nga ang pamilya ang gakahinay-hinayan og problema. Usahay, maski mga amigo nato dili nato masultian tanan. Pero diri, safe ka mag-express bisan unsa pa na. Pwede nimo isulti kung unsa imong giampo, kung unsay nakapabug-at, or bisan unsa lang imong gibati karon."
-
-  utter_coping_family_issues:
-  - text: "Remember that taking care of yourself is important, even when things are difficult at home. Try to find moments, even if they’re short, where you can do something comforting for yourself—like listening to your favorite song, going outside for a breath of fresh air, or writing your thoughts in a journal. Sometimes, just having a safe space to let out your feelings, whether through writing, drawing, or talking to someone you trust, can make a difference. If things ever feel overwhelming, reaching out to a teacher, guidance counselor, or trusted adult can give you the extra support you need."
-  - text: "It’s okay to give yourself permission to step away for a bit if things at home get too stressful. You don’t have to solve everything alone. Sometimes, taking small breaks, spending time with friends, or focusing on an activity you enjoy—even just for a few minutes—can help you recharge. You can also try breathing exercises, meditation, or even just quietly reflecting on what you’re grateful for, to help balance your emotions."
-  - text: "Kung kapoy na kaayo ang gibati nimo, pwede kaayo ka mangita og hinay-hinay nga pamaagi para mapagaan gamay imong hunahuna. Pwede ka mag-journal, magsuwat og letter (bisan dili nimo ipadala), o magdrawing kung di nimo gusto magsulti dayon. Ayaw pugsa imong kaugalingon nga strong pirmi—okay ra gyud nga mohilak, magpahuway, o mangita og kauban nga kasaligan."
-  - text: "Pwede sab nimo buhaton ang mga butang nga makaparelax nimo, maski ginagmay lang. Sulayi og lakaw-lakaw, pagpaminaw og music, pagtan-aw og salida, o pagkaon sa imong paborito nga snack. Ayaw kabalaka kung usahay wa kay gana, kay normal ra gyud na basta naay problema sa pamilya. Importante nga makapangita ka og paagi nga makapahupay bisag gamay sa imong gibati."
-  - text: "Kung bug-at na kaayo imong problema, mas maayo gyud nga mo-reach out sa guidance counselor, teacher, o bisan close nga amigo. Usahay, makatabang ang perspective sa laing tao, o makahatag sila og advice nga wa nimo nahuna-hunaa. Hinumdumi, wala ka nag-inusara sa imong pag-atubang ani."
-
-
-  utter_support_burnout:
-  - text: "Burnout can happen when we’ve been carrying too many responsibilities for too long, and it’s more common than you might think. If you’ve been feeling exhausted, unmotivated, or like everything is just too much, you’re definitely not alone. Sometimes, just talking about what’s draining your energy can help a little. If you feel comfortable, would you like to share what’s been making you feel this way lately?"
-  - text: "It’s completely understandable to feel burned out, especially when you’re always trying your best at school, home, or with other commitments. Pushing yourself too hard without taking breaks can leave you feeling empty or tired all the time. I’m here to listen if you want to talk about what’s been exhausting you or what you wish could change."
-  - text: "Kapoy gyud kaayo usahay labi na kung daghan kaayo tag ginabuhat ug murag way break. Normal ra kaayo nga ma-burnout basta permi ta busy or pressured. Kung okay ra nimo, pwede nimo i-share kung unsa gyud ang nakapakapoy nimo lately, o unsa imong gusto mausab."
-  - text: "Usahay, maski gamay lang atong kulang sa pahulay, dali ra kaayo ta kapoyon o mawad-an og gana. Kung gusto ka magstorya unsa imong gibati o unsa nakapabug-at nimo, naminaw ra ko andam motabang kung unsa akong makaya."
-
-  utter_coping_burnout:
-  - text: "To cope with burnout, it can help to take intentional breaks, even if it’s just a few minutes to step away from work or studies. Try to include something enjoyable in your daily routine, like listening to music, talking to a friend, or doing a hobby you love. Setting healthy boundaries—like saying no to extra tasks when you’re already tired—is also important for your well-being."
-  - text: "Give yourself permission to rest, and remember that you don’t have to do everything all at once. Making time for self-care, even in small ways, can help restore your energy. If you’re feeling overwhelmed, reaching out for support from friends, family, or a counselor can make a big difference."
-  - text: "Sulayi og pahulay bisag kadali lang kada human og task, ug pangitaa og activity nga makalingaw or makaparelax nimo, sama sa pagpaminaw og music, paglakaw-lakaw, o pagduwa og game. Importante pud nga kahibaw ka mo-set og limit—dili kinahanglan dawaton tanan trabaho kung kapoy naka."
-  - text: "Ayaw pugsa imong kaugalingon kung di naka kaya. Hinumdumi nga okay ra kaayo mohunong og ginagmay, buhata imong hilig, ug istorya sa tao nga kasaligan nimo kung gikapoy na gyud kaayo ka. Usahay, self-care ra jud ang makatabang aron ma-recharge balik imong energy."
-
-
-  utter_support_suicidal_thoughts:
-  - text: "I'm really sorry you're feeling this way. What you're going through is incredibly hard, and it takes courage to even say it out loud. Please know you are not alone—there are people who care about you and want to help. If you’re willing, I can help connect you with a school counselor or a mental health professional who can support you more directly. Would you like to talk to someone right now?"
-  - text: "You’re carrying a very heavy burden right now, and I want you to know that your feelings are valid, but you don’t have to face this alone. There are people—counselors, friends, teachers—who want to support you. If you’re ready, I can help you reach out for more help. You’re important and your life matters."
-  - text: "Lisod gyud kaayo imong gibati karon, ug dako kaayo nga butang nga nisulti ka bahin ani. Dili ikaw nag-inusara, daghan ang nag-care nimo bisan og usahay murag wala. Kung okay ra nimo, pwede tika matabangan makig-istorya sa counselor aron naay mas makasabot og makatabang jud nimo."
-  - text: "Bati gyud kaayo ang ing-ani nga gibati, pero hinumdumi nga importante ka ug daghan ang gusto motabang nimo. Naa koy ikatabang para makontak ang guidance counselor o bisan kinsa nga professional kung andam naka. Pwede tika tabangan ron dayon kung gusto nimo."
-
-  utter_coping_suicidal_thoughts:
-  - text: "If you’re feeling overwhelmed, please consider reaching out to someone you trust—a family member, friend, teacher, or counselor. You don’t have to face these feelings alone. Letting others know what you’re going through can be the first step toward finding relief and support. If you’d like, I can help you contact someone right now. Your life is valuable, and help is always available."
-  - text: "Sometimes, the pain can feel too much to carry on your own. But talking to a mental health professional or someone close to you can really make a difference. You are not a burden—asking for help shows strength. If you’re ready, I can guide you to someone who can support you more."
-  - text: "Palihug, kung bug-at na kaayo imong gibati, suwayi og reach out sa usa ka tao nga kasaligan nimo—amigo, pamilya, teacher, o counselor. Dili kinahanglan nga ikaw ra magdala sa tanan. Kung gusto nimo, pwede tika matabangan makig-istorya ron dayon. Importante ka ug ang imong kinabuhi naay bili."
-  - text: "Kung murag dili na nimo kaya, ayaw kahadlok mangayo og tabang. Daghan ang andam maminaw nimo ug mutabang nimo nga mo-agi sa imong kasakit. Dili ka nag-inusara. Gusto ko nga mahibalo ka nga pwede tika matabangan makig-connect sa guidance o sa professional nga makatabang jud nimo."
-
-  utter_support_bullying:
-  - text: "I'm really sorry to hear that you’re experiencing bullying. No one ever deserves to be treated that way, and what you’re going through is not your fault. Thank you for trusting me enough to share this with me. If you want, we can talk about what happened and explore ways to help you feel safer or cope better. Would you like some advice or support right now?"
-  - text: "Bullying can have a huge impact on how you feel every day, so it’s very brave of you to open up about it. Remember, you’re not alone and you don’t have to handle this by yourself. If you want to talk more about the situation, or if you’d like some tips on how to protect yourself or get help, I’m here for you."
-  - text: "Dili gyud maayo ang bullying, ug walay tawo nga angay nga daoton or pasakitan. Salamat nga nagsalig ka nako ug nisulti ka about ani. Kung gusto nimo, pwede nato hisgutan unsa nahitabo or unsa imong nabati karon. Andam ko motabang nimo kung unsa akong makaya."
-  - text: "Lisod gyud ang mabiktima sa bullying, pero maayo nga nisulti ka kay importante nga makapangayo kag tabang. Naa ra ko diri kung gusto nimo mag-open up or kung ganahan ka og advice kung unsaon pag-atubang sa mga bully."
-
-  utter_coping_bullying:
-  - text: "It’s important to remember that you’re not alone, and there are people who care and want to help you. If you feel safe, let a trusted adult—like a teacher, guidance counselor, or parent—know about what’s happening. Try to avoid places where you might be alone with those who hurt you, and keep notes or a record of any incidents. The more you can share with someone in authority, the better they can protect you."
-  - text: "Dealing with bullying can be tough, but you can take steps to stay safe. Always reach out to someone you trust when something happens. Surround yourself with friends or classmates when possible, and if you feel threatened, don’t hesitate to ask for help right away. Keeping a record of what happened—including times, places, and names—can help adults understand your situation and support you."
-  - text: "Kung naa kay na-experience nga bullying, importante nga makigstorya ka sa teacher, guidance counselor, o ginikanan. Likayi ang lugar nga dali ka ra nila ma-approach o ma-bully, ug pangita og mga amigo nga kasaligan. Mas maayo pud kung magsulat ka kung unsay nahitabo para naay record kung kinahanglan ka mo-report."
-  - text: "Ayaw kahadlok mangayo og tabang, labi na kung delikado na imong sitwasyon. Sulayi og kuyog pirmi sa imong mga amigo or classmates, ug isulti dayon sa teacher kung naa kay na-feel nga danger. Importante nga ma-record nimo tanan para matabangan ka dayon."
-
-
-  utter_support_homesickness:
-  - text: "Feeling homesick is completely normal, especially when you’re in a new place or away from the people and routines that make you feel safe. Many students go through this, so you’re definitely not alone. If you want, you can share what you miss most about home, or talk about the people or things that help you feel comforted. Sometimes, just expressing what’s on your mind can help you feel a bit lighter."
-  - text: "Missing your family, friends, or even small things from home can really tug at your heart, and that’s okay. Homesickness happens to many people, and it’s a sign that home is important to you. If you’d like, we can talk about what you miss the most or ways to bring some of that comfort into your new environment."
-  - text: "Normal ra gyud kaayo nga ma-homesick, labi na kung layo ka sa pamilya o bag-o pa lang sa usa ka lugar. Pwede nimo i-share unsay imong gimingaw sa balay—bisan tao, lugar, o routine. Usahay makatabang gyud ang pag-storya bahin sa mga butang nga nakapa-feel nimo nga safe ug happy."
-  - text: "Daghan gyud ang naka-experience og homesickness, so ayaw kabalaka kung mao pud imong gibati. Pwede kaayo nato hisgutan unsa imong gimingaw or unsay makaparelax nimo karon nga layo ka sa inyo."
-
-  utter_coping_homesickness:
-  - text: "One way to cope with homesickness is to stay connected with your family and friends—maybe through regular calls, chats, or even sharing photos. Try to bring a little bit of home to your new space by adding things that remind you of happy memories, like pictures, decorations, or your favorite snacks. Getting involved in school activities, joining clubs, or spending time with new friends can also help you feel more at home where you are now."
-  - text: "It’s okay to miss home, but it might help to focus on building new routines or creating a cozy environment in your current place. Stay in touch with loved ones as much as you can, and try to explore your new surroundings little by little. The more you get involved and make new memories, the more comfortable you might start to feel."
-  - text: "Pwede ka mag-chat or tawag pirmi sa imong pamilya ug mga amigo para dili kaayo ka mabati nga layo ka. Butangi og mga butang nga makapahinomdom nimo sa balay imong kwarto—like pictures, paborito nimo nga pillow, or bisan unsa nga gamay. Sulayi pud apil og mga activities sa school or barkada para naa kay kalingawan ug makaila og new friends."
-  - text: "Ayaw kabalaka kung magmingaw ka sa inyo. Pwede ra gyud nimo buhaton nga mag-connect pirmi sa imong loved ones, magbuhat og bag-ong hobby, or mag-explore og activities nga lingaw nimo. Gamita ang imong free time para sa self-care o pag-connect sa mga tawo nga makahatag nimo og support bisan layo ka."
-
-
-  utter_support_body_image:
-  - text: "It’s really understandable to feel down about your body sometimes, especially with all the pressures from social media, friends, or even our own expectations. You might feel like you’re the only one who struggles with body image, but honestly, many people go through the same thing, even if they don’t talk about it. If you feel ready, I’m here to listen to your thoughts or experiences about how you see yourself. There’s no pressure to explain everything perfectly—just say what’s on your mind, and I’ll support you."
-  - text: "Body image struggles can affect our mood, confidence, and even how we connect with others. You don’t have to go through this alone, and there’s nothing wrong with how you feel. If you’d like to talk about what’s making you doubt yourself or how these feelings started, we can work through it together. You matter, and your feelings about yourself are valid."
-  - text: "Lisod sab gyud kung permi ta mag-worry sa atong hitsura, labi na kung daghan pressures gikan sa palibot. Pero hinumdumi nga daghan pud ang makasinati og ingon ani nga struggle, bisan di kaayo nila isulti. Kung gusto ka mag-share, maski ginagmay lang, open ra ko maminaw nimo—bisan unsa pa imong gusto isulti, di ko mo-judge."
-  - text: "Usahay makabati ta og pressure nga dapat perfect ta tan-awon, pero ang tinuod, lahi-lahi gyud tag beauty ug worth. Nindot nga nakapangita ka og lugar para masulti imong gibati. Kung gusto nimo istoryahan unsay makapa-feel nimo ani, ready ko pirmi maminaw."
-
-  utter_coping_body_image:
-  - text: "Sometimes it helps to focus on the amazing things your body can do for you each day, instead of only thinking about appearance. You could try writing down or saying out loud the things you appreciate about yourself, whether it’s your strength, kindness, or the way you help others. Avoid comparing yourself to others online or in real life—everyone’s journey with self-acceptance is different, and you deserve to feel comfortable just as you are."
-  - text: "If you catch yourself having negative thoughts, try to gently remind yourself that your worth isn’t measured by looks alone. Spending time with positive, supportive people can help boost your self-esteem. It might also help to limit your exposure to media or situations that trigger self-doubt, and instead fill your feed or your day with things that make you feel good about who you are."
-  - text: "Pwede ka magfocus sa mga butang nga kaya buhaton sa imong lawas—sama sa pag-eskwela, pagtabang, or paglingaw-lingaw. Bisan pa sa atong flaws, naay daghan nga angay nimo ikapasalamat sa imong kaugalingon. Likayi ang sige compare sa imong self sa uban, kay lahi-lahi tag strengths ug storya."
-  - text: "Sulayi og isulat matag-adlaw bisan usa ra ka butang nga ginahan nimo sa imong self—pwede skills, attitude, or achievement. Surround imong kaugalingon sa mga tawo nga supportive, ug likayi ang negative nga tao or situations kung mahimo. Hinay-hinayi lang, ayaw pugsa imong self nga ma-perfect dayon; ang importante kay andam ka mag-care sa imong mental health samtang nag-grow ka."
-
-
-  utter_support_grief:
-  - text: "Losing someone or something important can bring all kinds of emotions—sadness, confusion, even anger or numbness. It’s completely normal to feel a mix of things, and you’re not alone in this experience. If you want to talk about your loss, or just share how you’ve been feeling lately, I’m always here to listen and support you. Take your time; there’s no right or wrong way to grieve. If you’d like to talk more, just let me know."
-  - text: "Grief is a heavy journey, and it can feel overwhelming at times, but you don’t have to carry it by yourself. Sometimes, just having someone to listen makes a big difference. If you’re ready to share memories or talk about the person or thing you lost, you can open up at your own pace. I’m here whenever you need to talk. If you want to continue talking, just say so."
-  - text: "Lisod gyud kaayo ang mawalan og mahal sa kinabuhi. Usahay maglibog ta kung unsaon pagpadayon, pero normal ra nga magbati og kasubo, mingaw, o bisan kalagot. Kung andam naka, pwede ra nimo i-share nako imong gibati or ang imong mga hinumduman nila. Dili kinahanglan nga isulti tanan dayon; bisan unsa ra imong gusto, okay ra. Kung gusto pa ka magstorya, pwede ra kaayo nimo sulti-an ko."
-  - text: "Walay sayon nga paagi sa pag-atubang og grief. Kung gusto nimo, naminaw ko kung mag-share ka about sa imong nawala—tao, hayop, o bisan unsa nga importante sa imo. Dili ra ikaw ang nakasinati og ingon ani, ug diri ra ko para maminaw sa imoha. Kung gusto pa ka magpadayon og istorya, sulti lang ko."
-
-  utter_coping_grief:
-  - text: "Coping with grief can look different for everyone, and that’s okay. Try to give yourself permission to feel whatever comes up—whether it’s sadness, anger, or even moments of happiness as you remember good times. Talking about your memories with someone you trust, writing about your feelings, or even doing something that honors the person or thing you lost can all help. Take things one day at a time, and don’t rush yourself. Healing is a slow process, and that’s perfectly normal. If you want to talk more or need extra support, I’m always here for you."
-  - text: "Allow yourself to grieve in your own way. You might find comfort in sharing stories about your loved one, looking through old photos, or doing something that reminds you of them. Remember, it’s okay to ask for support from friends, family, or a counselor whenever you need it. You’re not alone, and there’s no time limit on healing. If you’d like to talk more or need someone to listen, just let me know."
-  - text: "Pwede nimo dawaton ang kasubo ug hinay-hinayi lang ang proseso. Bisan maghilak ka, magsuwat og letter, o mag-ampo para sa nawala nimo—bisan unsa nga makaparelax nimo, buhata lang. Istorya og mga memories, magtan-aw og pictures, o magbuhat og activity nga makapahinumdom sa imoha nga nag-care ka pa gihapon. Hinumdumi, walay sayop nga paagi sa pag-grieve. Kung gusto pa ka magpadayon og istorya, naminaw ra ko."
-  - text: "Lisod gyud ang mag-move on dayon, so ayaw pugsa imong kaugalingon. Himoa ang mga butang nga makapahupay sa imong gibati—maski magpahulay lang, magsulat, o makigstorya sa tawo nga kasaligan nimo. Bisan hinay-hinay lang, importante nga di nimo bitbit tanan nga kasakit ikaw ra isa. Kung gusto pa ka mag-share, pwede kaayo nimo istorya nako anytime."
-
-
-  utter_support_peer_pressure:
-  - text: "Peer pressure can be a really tough thing to deal with, especially if you’re trying hard to fit in or don’t want to disappoint your friends. Sometimes it can make you feel stuck or unsure of what to do. Please know that you’re not alone—many people go through similar experiences, and it’s okay to feel confused or pressured. If you feel ready, you can share more about what happened or how you felt in that situation. There’s no need to rush; just talk at your own pace. And if you ever want to talk more, I’m always here to listen."
-  - text: "It’s completely normal to feel worried or even guilty when you face peer pressure, but it doesn’t mean you have to go along with what everyone else wants. You have the right to make your own choices. If you’d like to talk more about the situation, or just want someone to help you sort through your feelings, I’m here for you anytime. If you want to keep the conversation going, just let me know."
-  - text: "Dili gyud lalim ang pressure sa barkada, labi na kung morag mapugos ka og buhat og butang nga dili nimo gusto. Natural ra nga makulbaan or malibog kung unsaon pag-handle. Kung andam naka mag-share, pwede nimo i-storya unsa nahitabo o unsa imong nabati. Walay pressure nga kinahanglan i-explain tanan; maski gamay lang imong gusto i-share, open ra ko maminaw. Kung gusto pa ka magpadayon og istorya, ingna lang ko."
-  - text: "Lisod usahay mosupak kung kabalo ka nga basin ma-apektuhan ang inyong pagkabarkada, pero importante pud nga protektahan nimo imong kaugalingon. Pwede nimo istoryahan kung unsa imong na-experience or unsa imong gikahadlokan. Kung gusto nimo nga magpadayon og istorya, sulti lang nako—naminaw ra ko pirmi."
-
-  utter_coping_peer_pressure:
-  - text: "It can really help to practice saying 'no' in a way that feels right for you, even if it’s just in small ways at first. You might want to come up with a few phrases you feel comfortable using, or even role-play with someone you trust. Remember, it’s always okay to choose what’s best for you—even if it feels awkward at first. Spend more time with friends who accept and support you for who you are. And if you want to talk about specific situations or want more ideas, just let me know."
-  - text: "One way to cope is to remind yourself of your own values and what’s important to you, especially when you feel pressure to do something you’re not comfortable with. Surround yourself with people who understand and respect your decisions, even if that means saying 'no' sometimes. Practicing your response in advance can also help you feel more confident when the situation comes up. If you ever want to talk more or share what you’re going through, I’m here to support you."
-  - text: "Practice og sulti og 'dili' bisan pa gamay ra sa una—makatabang gyud na nga mas confident ka nga mobarog sa imong desisyon. Ayaw kahadlok nga mo-stand sa imong prinsipyo, ug hinumdumi nga tinuod nga amigo ang kanang morespeto sa imong choices. Kung ganahan ka mangayo og advice sa specific nga sitwasyon, or gusto lang magpadayon og istorya, andam ra ko maminaw."
-  - text: "Lisod usahay ang mo-barog para sa imong kaugalingon, pero importante nga ma-practice nimo ang pag-set og boundaries. Paminawa pud ang imong feelings kung murag uncomfortable naka—bisan simple ra nga paglakaw palayo or pag-ingon og 'dili,' dako na kaayo na og impact. Pwede ra kaayo nimo istoryahan naku kung gusto pa ka og support or gusto lang nimo i-express imong feelings."
-
-
-  utter_support_overthinking:
-  - text: "Overthinking can really wear you out, especially when it feels like your mind just won’t stop racing. It’s normal to get stuck in a loop of worries, but you don’t have to handle it by yourself. If you want, you can share what’s been on your mind lately, or just talk about how it’s affecting you. Sometimes, just saying your thoughts out loud can help you feel a bit lighter. And if you’d like to learn ways to calm your mind or need more support, I’m here for you—just let me know."
-  - text: "Getting caught up in your thoughts happens to everyone sometimes, especially when there are big decisions or worries in your life. If you’d like, we can talk about what’s making you overthink, or I can suggest some techniques that might help quiet your mind. There’s no pressure to explain everything—whatever you want to share is welcome here. If you want to talk more about it, just say so and I’ll be here."
-  - text: "Kapoy gyud kaayo usahay ang sige og huna-huna nga murag dili na nato mapahunong. Bisan simple lang nga butang, usahay pirme nato madala sa atong hunahuna. Kung gusto nimo mag-open up, pwede kaayo nimo i-share nako unsa imong gi-overthink or unsay epekto ani nimo. Maski gamay ra imong maistorya, naminaw ra ko. Kung gusto pa ka magpadayon og istorya or gusto nimo makat-on og tips, sulti lang ko."
-  - text: "Usahay, makasapot na gyud ang sige og balik-balik sa mga hunahuna, labi na kung maglibog ta unsay buhaton. Importante nga makabalo ka nga okay ra mag-open up—pwede nimo sulti-an ko unsay permi nimo gihuna-huna or unsay gusto nimo masabtan. Naa ra ko kung gusto pa ka magpadayon og storya o mangayo og advice."
-
-  utter_coping_overthinking:
-  - text: "You might find it helpful to set aside a short 'worry time' every day—a specific moment where you allow yourself to think about your concerns, and then let them go for the rest of the day. Journaling your thoughts, making lists, or even just writing down what’s bothering you can help organize your mind. When you feel stuck in overthinking, try to gently shift your attention to something you enjoy, like a hobby, spending time with friends, or even a simple walk outside. If you want more advice or want to keep talking about this, I’m here for you."
-  - text: "Try to be patient and gentle with yourself—no one can control their thoughts all the time. Simple things like deep breathing, listening to calming music, or doing something creative can help you get out of your own head for a while. You can also practice grounding techniques, like naming things you see around you, to help bring your mind back to the present. If you ever need more techniques or just want to share more, let me know."
-  - text: "Pwede nimo buhaton nga mag-set og specific nga time kada adlaw para maghunahuna or mag-worry, unya human ana, buhata na imong hilig aron malipat imong utok. Pwede sab magsulat ka sa imong mga concern or mag-lista ka unsay gusto nimo buhaton para maklaro imong hunahuna. Kung maglisod gihapon ka, sulayi og estorya sa kasaligan nga amigo o mag-try og activity nga makaparelax nimo. Kung gusto pa ka magpadayon og istorya o mangayo og tips, open ra ko pirmi."
-  - text: "Kung magsige gihapon ka og overthink, hinumdumi nga normal ra gyud na usahay, pero importante nga mahatagan nimo og break imong mind. Sulayi og breathing exercises, paglakaw-lakaw, pagpaminaw og kalma nga music, or buhata ang activity nga makapalipay nimo. Kung gusto pa ka mag-istorya or mangayo og laing advice, andam ra ko maminaw nimo anytime."
-
-
-  utter_support_sleep_problems:
-  - text: "Having trouble sleeping can really affect your mood, energy, and even how you focus in school or enjoy your day. You’re not alone—many people go through sleep problems at some point. If you want to talk about what’s been making it hard for you to sleep, or just share what you’ve noticed, I’m here to listen and help if I can. If you want to talk more, just let me know."
-  - text: "It’s normal to feel frustrated or worried when you can’t get enough sleep. Sometimes, just talking about your sleep habits or what’s been on your mind at night can make a difference. If you’d like, we can discuss what might be causing your sleep troubles, and I can share some tips that might help. If you ever want to talk more about this, I’m always here."
-  - text: "Lisod gyud ang walay tarong nga tulog, labi na kung naapektuhan na ang imong adlaw. Normal ra nga mabug-atan ka or kapoy ka pirmi kung kulang imong tulog. Kung gusto nimo mag-share unsay nakapalibog nimo or gusto ka makat-on og tips para mas maayo imong tulog, naminaw ra ko. Sulti lang ko kung gusto pa ka magpadayon og istorya."
-  - text: "Usahay maglisod ta og tulog kay daghan kaayo tag gi-huna-huna o naay kabalaka. Kung gusto nimo istoryahan unsay makapalisod nimo og tulog, pwede kaayo nimo i-share nako. Open ra ko pirmi para maminaw nimo, ug kung gusto pa ka magpadayon og istorya, sulti lang ko."
-
-  utter_coping_sleep_problems:
-  - text: "To help improve your sleep, you might try creating a relaxing bedtime routine, like reading a book, listening to calming music, or doing gentle stretches before bed. Try to limit screen time—like phones or computers—at least 30 minutes before you sleep, since the light can keep your brain awake. Keeping your sleep and wake times regular, even on weekends, can help your body adjust to a healthy schedule. If you need more ideas or want to talk about what works for you, just let me know."
-  - text: "Getting better sleep often starts with small changes, like avoiding caffeine or heavy snacks before bed, and making your room as comfortable and dark as possible. Try to wind down at the same time each night, and use your bed only for sleeping, not for studying or watching videos. If you want more tips or need support building better sleep habits, I’m always here for you."
-  - text: "Pwede ka magbuhat og routine kada gabii, sama sa pagpaminaw og relaxing nga music o pagbasa og libro, aron marelax ka before matulog. Likayi ang paggamit og cellphone or computer sulod sa 30 minutos before matulog kay makapadugay na og katulog. Pagsunod og pareho nga oras sa pagtulog ug pagmata matag adlaw aron masanay imong lawas. Kung gusto pa ka og tips, sulti lang ko."
-  - text: "Hinay-hinayi og likay ang kape, softdrinks, o bug-at nga snacks sa gabii. Pabugnawa og maayo ang imong kwarto ug patya ang suga kung matulog naka. Pwede pud nimo sulayan nga himoang lugar sa katre para tulog ra, dili mag cellphone or mag study didto. Kung kinahanglan pa ka og support or gusto pa nimo mag-istorya, andam ra ko maminaw nimo."
-
-
-  utter_support_time_management:
-  - text: "Managing your time well can be really hard, especially when you’re balancing school, home responsibilities, and maybe even extracurricular activities. Sometimes it feels like there just aren’t enough hours in the day, and that can be overwhelming. If you want, we can talk about what your days usually look like or which tasks or routines are giving you the most trouble. Just sharing your daily routine or how you feel about your schedule can sometimes help you find a better way forward. If you’d like to keep the conversation going or need more support, I’m here for you anytime."
-  - text: "A lot of students struggle with time management, especially when there are many deadlines and expectations. It’s normal to feel like you’re always catching up. If you want to share more about how you organize your tasks or what usually gets in the way, I’m here to listen. Together, we might be able to figure out small changes that could make a big difference. Just let me know if you want to talk more."
-  - text: "Lisod gyud usahay i-balance ang tanang buluhaton sa school, balay, ug uban pang activities. Sahay murag kulang na kaayo ang oras, ug mapressure ta nga basin di na nato makaya tanan. Kung gusto nimo mag-open up unsa imong daily routine o unsay lisod nga part para nimo, pwede ra kaayo nimo isulti nako. Bisan pag simple lang, usahay makatabang na kaayo. Kung gusto pa ka magpadayon og istorya, andam ra ko maminaw nimo anytime."
-  - text: "Dili lalim mag-manage sa oras labi na kung daghan ka ug assignments, projects, ug responsibilities sa balay. Pwede nimo i-share kung unsa imong struggle o unsa nga parte sa imong schedule ang murag maglibog ka. Kung gusto nimo magpadayon og istorya or nangita ka og advice, sulti lang ko—open ra ko pirmi para nimo."
-
-  utter_coping_time_management:
-  - text: "One way to make time management easier is to break your big tasks into smaller, more manageable steps. You could start by making a to-do list each morning or the night before, so you have a clear picture of what needs to be done. Using a planner—whether on your phone or on paper—can also help you keep track of deadlines, appointments, and important dates. Prioritizing what’s most important first can make the rest of your tasks feel less overwhelming, and don’t forget to set aside time for breaks and things you enjoy. If you’d like to talk more about building better routines or want more tips, just let me know."
-  - text: "It can really help to write down your assignments, chores, and even your breaks, so you don’t forget anything. Try using alarms or reminders for deadlines. It’s also okay to ask for help if things start to pile up—sometimes, getting advice from a friend, teacher, or family member can give you a new perspective. Remember to be kind to yourself; no one manages time perfectly every day. If you want more advice, or just need someone to listen, I’m always here."
-  - text: "Isulat tanan imong buhaton kada adlaw ug pilia kung unsa ang pinaka-importante unahon para di ka ma-stress. Gamiti og notebook, planner, or app para ma-track nimo imong schedule ug mga deadline. Unya, ayaw kalimti nga mag-break og gamay para makapahuway imong utok ug lawas. Kung gusto pa ka og advice o magpadayon og istorya, pwede ra kaayo ka mag-message nako."
-  - text: "Sulayi og buhat og simple nga routine nga sayon ra nimo sundon. Pwede nimo buhaton ang listahan kada buntag o gabii, aron klaro ka unsa imong buhaton sunod adlaw. Kung daghan na kaayo og buluhaton, ayaw kahadlok mangayo og tabang—bisan pa sa imong teacher o amigo. Importante nga maghatag pud ka og reward sa imong self kung mahuman nimo ang imong tasks. Kung gusto pa ka magpadayon og istorya or mangayo og laing ideas, andam ra ko maminaw nimo."
-
-
-actions: []
 
 session_config:
   session_expiration_time: 60
   carry_over_slots_to_new_session: true
+
+slots:
+  lang:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+
+intents:
+  - greet
+  - goodbye
+  - academic_pressure
+  - anxiety
+  - bullying
+  - burnout
+  - depression
+  - family_problems
+  - financial_stress
+  - grief_loss
+  - loneliness
+  - low_self_esteem
+  - relationship_issues
+  - sleep_problems
+  - stress
+  - substance_abuse
+  - time_management
+  - safety_critical
+
+actions:
+  - action_respond_from_sheet
+
+responses:
+  utter_crisis:
+    - text: >
+        Thank you for telling me. Your safety matters a lot.
+        If you’re in immediate danger or have a plan to harm yourself or others,
+        please contact local emergency services or go to a safe place now.
+        Would you like me to help you reach a trusted person or a counselor?
+  utter_greet:
+    - text: "Hi! How can I help you today?"
+  utter_goodbye:
+    - text: "Take care! If you need anything else, I’m here."
