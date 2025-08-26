@@ -15,41 +15,63 @@ use Illuminate\Support\Str;
 
 class ChatController extends Controller
 {
-    /* -----------------------------------------------------------------------
-     | High-risk detector (extend as you get more data)
-     * ---------------------------------------------------------------------*/
-    private function isHighRisk(string $text): bool
+    /* =======================================================================
+     | Risk evaluation helpers
+     * =====================================================================*/
+
+    /**
+     * Return 'low' | 'moderate' | 'high' for a given text.
+     * Designed to be conservative but sensitive to:
+     *  - explicit suicidal intent (high)
+     *  - severe self-directed distress without an explicit intent (moderate)
+     */
+    private function evaluateRiskLevel(string $text): string
     {
         $t = mb_strtolower($text);
 
-        $patterns = [
-            '\bi (?:want|plan|intend)\s+to\s*(?:die|kill myself|end (?:it|my life)|suicide)\b',
-            '\bi(?:’|\'| am|m)\s*(?:done|tired of living|suicidal|hopeless)\b',
-            '\b(?:end it all|no reason to live|life is pointless)\b',
-            '\bkill myself\b',
-            '\bcommit suicide\b',
-            '\bi (?:can\'t|cannot) go on\b',
-            '\bself[- ]harm\b',
-            '\bcut(ting)? myself\b',
-            '\b(?:jump off|overdose|poison myself)\b',
+        // 🔴 High Risk: explicit suicidal intent
+        $highPatterns = [
+            '\bi\s*(?:really\s*)?(?:want|plan|intend|gonna|going to)\s+(?:to\s*)?(?:die|kill myself|end (?:it|my life)|suicide)(?:\s*now|\s*soon)?\b',
+            '\bi\s*(?:wanna|want to)\s*die\b',
+            '\bwanna die\b',
+            '\bi\s*(?:will|gonna|going to)\s*(?:kill myself|end my life|suicide)\b',
+            '\bi(?:’|\'| am|m)?\s*(?:done|suicidal|hopeless)\b',
+            '\b(end it all|no reason to live|life is pointless)\b',
+            '\b(kill myself|commit suicide|self[- ]harm|cutting myself|overdose|poison myself|jump off)\b',
         ];
-        foreach ($patterns as $p) {
-            if (preg_match('/' . $p . '/iu', $t)) return true;
+        foreach ($highPatterns as $p) {
+            if (preg_match('/' . $p . '/iu', $t)) {
+                return 'high';
+            }
         }
 
-        // co-occurrence heuristic
-        $kwA = ['suicide','die','kill myself','end my life','end it','jump','overdose','poison','cut'];
-        $kwB = ['want','plan','thinking','feel like','i should','i will','i might'];
-        foreach ($kwA as $a) foreach ($kwB as $b) {
-            if (str_contains($t, $a) && str_contains($t, $b)) return true;
+        // 🟡 Moderate Risk: strong distress but no direct suicide phrase
+        $moderatePatterns = [
+            '\bi (?:hate myself|can\'t go on|don\'t want to live)\b',
+            '\bi feel (?:worthless|empty|numb|like dying)\b',
+            '\bi want to disappear\b',
+            '\bnobody cares\b',
+            '\bi really hate myself\b',
+        ];
+        foreach ($moderatePatterns as $p) {
+            if (preg_match('/' . $p . '/iu', $t)) {
+                return 'moderate';
+            }
         }
-        return false;
+
+        // 🟢 Default low
+        return 'low';
     }
 
-    /* -----------------------------------------------------------------------
-     | Crisp crisis block + CTA token (HTML). {APPOINTMENT_LINK} is replaced
-     | below with a signed button.
-     * ---------------------------------------------------------------------*/
+    /** Backwards-compat helper used by crisis gate */
+    private function isHighRisk(string $text): bool
+    {
+        return $this->evaluateRiskLevel($text) === 'high';
+    }
+
+    /* =======================================================================
+     | Crisis CTA block (HTML with placeholder for signed link)
+     * =====================================================================*/
     private function crisisMessageWithLink(): string
     {
         $c   = config('services.crisis');
@@ -85,6 +107,7 @@ HTML;
             return redirect()->route('chat.new');
         }
 
+        // Make sure view has this variable every time
         $showGreeting = session()->pull('show_greeting', false);
 
         $chats = Chat::where('user_id', Auth::id())
@@ -103,10 +126,16 @@ HTML;
         return view('chat', compact('chats', 'showGreeting'));
     }
 
-    public function newChat()
+    /**
+     * Start a new chat session (or reuse an empty one).
+     * Honors ?anonymous=1 to set is_anonymous.
+     */
+    public function newChat(Request $request)
     {
-        $userId = Auth::id();
+        $userId     = Auth::id();
+        $anonymous  = (int) $request->query('anonymous', 0) === 1 ? 1 : 0;
 
+        // If a session is active and has no messages yet, just show greeting
         if (session('chat_session_id')) {
             $session = ChatSession::where('id', session('chat_session_id'))
                 ->where('user_id', $userId)
@@ -114,18 +143,28 @@ HTML;
             if ($session) {
                 $hasMessages = Chat::where('chat_session_id', $session->id)->exists();
                 if (!$hasMessages) {
+                    // If user toggled anonymous now, persist it on the empty session
+                    if ($session->is_anonymous != $anonymous) {
+                        $session->is_anonymous = $anonymous;
+                        $session->save();
+                    }
                     session(['show_greeting' => true]);
                     return redirect()->route('chat.index');
                 }
             }
         }
 
+        // Reuse most recent empty session (and update anonymity)
         $reuse = ChatSession::where('user_id', $userId)
             ->whereDoesntHave('chats')
             ->latest('id')
             ->first();
 
         if ($reuse) {
+            if ($reuse->is_anonymous != $anonymous) {
+                $reuse->is_anonymous = $anonymous;
+                $reuse->save();
+            }
             session([
                 'chat_session_id' => $reuse->id,
                 'show_greeting'   => true,
@@ -133,9 +172,12 @@ HTML;
             return redirect()->route('chat.index');
         }
 
+        // Create fresh session
         $session = ChatSession::create([
             'user_id'       => $userId,
+            'is_anonymous'  => $anonymous,
             'topic_summary' => 'Starting conversation...',
+            // risk_level default via migration is 'low'
         ]);
 
         session([
@@ -147,7 +189,7 @@ HTML;
     }
 
     /* =======================================================================
-     | Store a user message, call Rasa, then add safety + booking logic
+     | Store a user message, call Rasa, add safety + booking logic
      * =====================================================================*/
     public function store(Request $request)
     {
@@ -165,6 +207,7 @@ HTML;
 
         $text = $request->message;
 
+        // Save user's message (encrypted)
         $userMsg = Chat::create([
             'user_id'         => Auth::id(),
             'chat_session_id' => $sessionId,
@@ -173,14 +216,27 @@ HTML;
             'sent_at'         => now(),
         ]);
 
-        $count = Chat::where('chat_session_id', $sessionId)->where('sender', 'user')->count();
-        if ($count === 1) {
+        // If first user message, derive simple session title
+        $countUserMsgs = Chat::where('chat_session_id', $sessionId)->where('sender', 'user')->count();
+        if ($countUserMsgs === 1) {
             preg_match('/\b(sad|depress|help|anxious|angry|lonely|stress|tired|happy|excited|not okay)\b/i', $text, $m);
             $summary = $m[0] ?? Str::limit($text, 40, '…');
             ChatSession::find($sessionId)?->update(['topic_summary' => ucfirst($summary)]);
         }
 
-        // --- Call Rasa safely
+        // 🧠 Risk evaluation (upgrade only; never downgrade)
+        $incomingRisk = $this->evaluateRiskLevel($text);
+        $session      = ChatSession::find($sessionId);
+        if ($session) {
+            $current = $session->risk_level ?? 'low';
+            $rank = ['low' => 0, 'moderate' => 1, 'high' => 2];
+            if (($rank[$incomingRisk] ?? 0) > ($rank[$current] ?? 0)) {
+                $session->risk_level = $incomingRisk;
+                $session->save();
+            }
+        }
+
+        // === Call Rasa (gracefully fallback)
         $rasaUrl    = config('services.rasa.url', env('RASA_URL', 'http://127.0.0.1:5005/webhooks/rest/webhook'));
         $botReplies = [];
         try {
@@ -200,7 +256,7 @@ HTML;
             $botReplies = ["It’s normal to feel that way. I’m here to listen. Would you like to share what happened?"];
         }
 
-        // ===== Crisis detection (once per session)
+        // === Crisis detection (once per session)
         $crisisAlreadyShown = session('crisis_prompted_for_session_' . $sessionId, false);
         if (!$crisisAlreadyShown && $this->isHighRisk($text)) {
             session(['crisis_prompted_for_session_' . $sessionId => true]);
@@ -220,7 +276,7 @@ HTML;
             array_unshift($botReplies, $this->crisisMessageWithLink());
         }
 
-        // ===== Simple appointment intent (works even if Rasa is "dumb")
+        // === Appointment intent (works even if Rasa is basic)
         $wantsAppointment = (bool) preg_match(
             '/\b(appoint|appointment|schedule|book|booking|meet|talk)\b.*\b(counsel|counselor|therap|advisor)\b|'
             . '\bsee (?:a )?counselor\b|'
@@ -241,11 +297,11 @@ HTML;
             }
         }
 
-        // ===== Build signed appointment CTA
+        // Build signed appointment CTA
         $signed  = URL::signedRoute('features.enable_appointment');
         $ctaHtml = '<a href="' . $signed . '" class="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition">Book an appointment</a>';
 
-        // Save replies & return payload
+        // Save bot replies & return payload
         $botPayload = [];
         foreach ($botReplies as $reply) {
             if (is_string($reply) && str_contains($reply, '{APPOINTMENT_LINK}')) {

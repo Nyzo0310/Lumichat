@@ -18,7 +18,7 @@
         <input
           id="historySearch"
           type="text"
-          placeholder="Search conversations..."
+          placeholder="Search conversations… (try: sad, depress, anonymous)"
           class="input-dynamic w-full pl-10 pr-3 py-2 text-sm"
         />
         <svg class="pointer-events-none absolute left-3 top-2.5 h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -59,18 +59,29 @@
     </div>
   </div>
 
-  {{-- Sessions list (wireframe style) --}}
+  {{-- Sessions list --}}
   @forelse ($sessions as $session)
     @php
-      $title = $session->topic_summary ?: 'Untitled conversation';
-      $last  = optional($session->updated_at)->diffForHumans() ?? 'just now';
+      $title   = $session->topic_summary ?: 'Untitled conversation';
+      $last    = optional($session->updated_at)->diffForHumans() ?? 'just now';
+
+      $risk    = $session->risk_level ?? 'low';          // 'low' | 'moderate' | 'high'
+      $isAnon  = (int) ($session->is_anonymous ?? 0);
+
+      $riskClass = match($risk) {
+        'high'     => 'bg-red-500',
+        'moderate' => 'bg-yellow-500',
+        default    => 'bg-green-500',
+      };
+      $riskLabel = ucfirst($risk) . ' risk';
     @endphp
 
     <div class="session-card card-shell p-5 sm:p-6 transition hover:shadow-md
                 flex items-start sm:items-center justify-between gap-4"
          data-session-card
          data-session-id="{{ $session->id }}"
-         data-title="{{ strtolower($title) }}">
+         data-title="{{ strtolower($title) }}"
+         data-anon="{{ $isAnon }}">
 
       <div class="flex items-start gap-3 min-w-0">
         {{-- Hidden checkbox for Manage mode --}}
@@ -79,8 +90,26 @@
                       dark:border-gray-600"
                value="{{ $session->id }}" />
 
+        {{-- Risk level dot --}}
+        <span class="mt-1.5 inline-block w-3 h-3 rounded-full {{ $riskClass }}"
+              aria-label="{{ $riskLabel }}"
+              title="{{ $riskLabel }}"></span>
+
         <div class="min-w-0">
-          <h3 class="title-dynamic text-lg font-semibold truncate">{{ $title }}</h3>
+          <div class="flex items-center gap-2">
+            <h3 class="title-dynamic text-lg font-semibold truncate">{{ $title }}</h3>
+
+            @if ($isAnon === 1)
+              {{-- Anonymous badge --}}
+              <span class="px-2 py-0.5 text-xs rounded-full border
+                           border-gray-300 text-gray-600
+                           dark:text-gray-200 dark:border-gray-600"
+                    title="This conversation was started in anonymous mode">
+                Anonymous
+              </span>
+            @endif
+          </div>
+
           <p class="muted-dynamic text-xs sm:text-sm">Last interaction: {{ $last }}</p>
 
           {{-- Link-style Continue in Chat --}}
@@ -192,7 +221,7 @@
     });
   });
 
-  /* Bulk delete (loop through your existing DELETE endpoint) */
+  /* Bulk delete (loop through existing DELETE endpoint) */
   deleteSelBtn?.addEventListener('click', async () => {
     const ids = Array.from(document.querySelectorAll('.bulk-box:checked')).map(cb => cb.value);
     if (!ids.length) {
@@ -239,12 +268,14 @@
     }
   });
 
-  /* Client-side search filter */
+  /* Client-side search: title + "anonymous" flag */
   function filter() {
     const q = (searchInput?.value || '').trim().toLowerCase();
     document.querySelectorAll('[data-session-card]').forEach(card => {
-      const title = card.getAttribute('data-title') || '';
-      card.classList.toggle('hidden', q && !title.includes(q));
+      const title = (card.getAttribute('data-title') || '');
+      const isAnon = card.getAttribute('data-anon') === '1';
+      const hay = [title, isAnon ? 'anonymous' : 'identified'].join(' ');
+      card.classList.toggle('hidden', q && !hay.includes(q));
     });
   }
   searchInput?.addEventListener('input', filter);

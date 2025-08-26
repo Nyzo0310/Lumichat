@@ -64,14 +64,14 @@
   {{-- Table --}}
   <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white">
     <table class="min-w-full text-sm">
-      <thead class="bg-gray-50 text-gray-700">
+      <thead class="bg-slate-200 text-slate-800 shadow-sm">
         <tr>
-          <th class="px-4 py-3 text-left">ID</th>
-          <th class="px-4 py-3 text-left">Student</th>
-          <th class="px-4 py-3 text-left">Counselor</th>
-          <th class="px-4 py-3 text-left">Date & Time</th>
-          <th class="px-4 py-3 text-left">Status</th>
-          <th class="px-4 py-3 text-right">Actions</th>
+          <th class="px-6 py-3 text-left font-semibold uppercase tracking-wide text-[11px] whitespace-nowrap">ID</th>
+          <th class="px-6 py-3 text-left font-semibold uppercase tracking-wide text-[11px] whitespace-nowrap">Student</th>
+          <th class="px-6 py-3 text-left font-semibold uppercase tracking-wide text-[11px] whitespace-nowrap">Counselor</th>
+          <th class="px-6 py-3 text-left font-semibold uppercase tracking-wide text-[11px] whitespace-nowrap">Date & Time</th>
+          <th class="px-6 py-3 text-left font-semibold uppercase tracking-wide text-[11px] whitespace-nowrap">Status</th>
+          <th class="px-6 py-3 text-left font-semibold uppercase tracking-wide text-[11px] whitespace-nowrap">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100 dark:divide-gray-700">

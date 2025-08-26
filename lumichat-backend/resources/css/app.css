@@ -388,6 +388,51 @@ body.sidebar-hidden .sidebar-open-btn {
 .bubble-ai    { @apply bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100; }
 .bubble-user  { @apply bg-indigo-600 text-white dark:bg-indigo-500; }
 
+/* Anonymous toggle switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+.checkbox {
+  display: none;
+}
+
+.slider {
+  width: 100%;
+  height: 100%;
+  background-color: lightgray;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  border: 2px solid transparent;
+  transition: .3s;
+  box-shadow: 0 0 10px 0 rgb(0, 0, 0, 0.25) inset;
+  cursor: pointer;
+}
+
+.slider::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  transform: translateX(-24px);
+  border-radius: 20px;
+  transition: .3s;
+  box-shadow: 0 0 10px 3px rgb(0, 0, 0, 0.25);
+}
+
+.checkbox:checked ~ .slider::before {
+  transform: translateX(24px);
+}
+
+.checkbox:checked ~ .slider {
+  background-color: #2196F3;
+}
 
 
 

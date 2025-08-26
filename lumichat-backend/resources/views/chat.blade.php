@@ -4,6 +4,23 @@
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
+{{-- Inline styles for the anonymous switch --}}
+<style>
+  .switch{position:relative;display:inline-block;width:50px;height:26px}
+  .checkbox{display:none}
+  .slider{
+    width:100%;height:100%;background-color:rgba(255,255,255,.35);
+    border-radius:20px;overflow:hidden;display:flex;align-items:center;
+    border:2px solid transparent;transition:.25s;box-shadow:0 0 10px 0 rgb(0 0 0 / .25) inset;cursor:pointer
+  }
+  .slider::before{
+    content:'';display:block;width:100%;height:100%;background:#fff;
+    transform:translateX(-24px);border-radius:20px;transition:.25s;box-shadow:0 0 10px 3px rgb(0 0 0 / .25)
+  }
+  .checkbox:checked ~ .slider{background:#6366f1}      /* indigo to match theme */
+  .checkbox:checked ~ .slider::before{transform:translateX(24px)}
+</style>
+
 <div class="chat-container relative">
 
   {{-- Greeting Overlay --}}
@@ -12,6 +29,7 @@
               flex flex-col items-center justify-center text-white z-50 px-4
               animate__animated animate__fadeIn">
 
+    {{-- Back button (top-left) --}}
     <a href="{{ route('profile.edit') }}"
        class="absolute top-4 left-4 z-[60] flex items-center gap-2 px-4 py-2
               bg-white/20 backdrop-blur-sm border border-white/30 rounded-full
@@ -21,6 +39,15 @@
       </svg>
       Back
     </a>
+
+    {{-- Anonymous switch (top-right) --}}
+    <div class="absolute top-4 right-4 z-[60] flex items-center gap-2">
+      <span class="text-sm font-medium text-white/90">Anonymous</span>
+      <label class="switch">
+        <input id="greeting-anon" type="checkbox" class="checkbox">
+        <div class="slider"></div>
+      </label>
+    </div>
 
     <img src="{{ asset('images/chatbot.png') }}" alt="Bot" class="w-16 h-16 mb-4 animate__animated animate__zoomIn">
     <h1 class="text-4xl font-extrabold leading-snug text-center mb-6 animate__animated animate__bounceInDown">
@@ -51,7 +78,8 @@
           Send
         </button>
       </div>
-      <p class="text-sm opacity-90 mt-6 text-white/90 animate__animated animate__fadeInUp">
+
+      <p class="text-sm opacity-90 mt-4 text-white/90 animate__animated animate__fadeInUp">
         We prioritize your mental health and privacy. Your chats are safe with us.
       </p>
     </form>
@@ -111,13 +139,14 @@
 @push('scripts')
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const overlay   = document.getElementById('greeting-overlay');
-  const chatWrap  = document.getElementById('chat-wrapper');
-  const showGreet = @json($showGreeting);
+  const overlay     = document.getElementById('greeting-overlay');
+  const chatWrap    = document.getElementById('chat-wrapper');
+  const showGreet   = @json($showGreeting ?? false);
 
   const greetingForm = document.getElementById('greeting-form');
   const greetingIn   = document.getElementById('greeting-input');
   const greetingBt   = document.getElementById('greeting-send');
+  const greetingAnon = document.getElementById('greeting-anon');   // switch
 
   const messages = document.getElementById('chat-messages');
   const form     = document.getElementById('chat-form');
@@ -127,17 +156,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const NEW_URL   = @json(route('chat.new'));
 
   // Initial view
-  setTimeout(() => { if (showGreet) overlay.classList.remove('hidden'); else { overlay.classList.add('hidden'); chatWrap.classList.remove('hidden'); } }, 100);
+  setTimeout(() => {
+    if (showGreet) overlay.classList.remove('hidden');
+    else { overlay.classList.add('hidden'); chatWrap.classList.remove('hidden'); }
+  }, 100);
+
   const toggleStartBtn = () => { greetingBt.disabled = !greetingIn.value.trim(); };
   greetingIn.addEventListener('input', toggleStartBtn); toggleStartBtn();
 
   function appendUserBubble(text, time = '') {
     messages.insertAdjacentHTML('beforeend', `
       <div class="self-end text-right animate__animated animate__zoomIn">
-        <div class="inline-block bubble-user px-4 py-2 rounded-2xl max-w-xs">${text}</div>
+        <div class="inline-block bubble-user px-4 py-2 rounded-2xl max-w-xs"></div>
         <div class="msg-time text-[10px] text-gray-400 dark:text-gray-500 mt-1">${time}</div>
       </div>
     `);
+    messages.lastElementChild.querySelector('.bubble-user').textContent = text; // safe
     messages.scrollTop = messages.scrollHeight;
     return messages.lastElementChild.querySelector('.msg-time');
   }
@@ -145,17 +179,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function appendBotBubble(text, time = '') {
     messages.insertAdjacentHTML('beforeend', `
       <div class="self-start animate__animated animate__fadeIn">
-        <div class="inline-block bubble-ai px-4 py-2 rounded-2xl max-w-xs">${text}</div>
+        <div class="inline-block bubble-ai px-4 py-2 rounded-2xl max-w-xs"></div>
         <div class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">${time}</div>
       </div>
     `);
+    messages.lastElementChild.querySelector('.bubble-ai').innerHTML = text; // allows CTA HTML
     messages.scrollTop = messages.scrollHeight;
   }
 
   async function sendMessage(text) {
     if (!text.trim()) return;
-
-    // optimistic user bubble (time filled after server reply)
     const timeEl = appendUserBubble(text, '');
 
     let data;
@@ -174,12 +207,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // set server time for user's last message
     if (data?.user_message?.time_human && timeEl) {
       timeEl.textContent = data.user_message.time_human;
     }
 
-    // append bot replies (supports strings OR {text, time_human})
     if (Array.isArray(data?.bot_reply)) {
       for (const r of data.bot_reply) {
         const botText = typeof r === 'string' ? r : (r?.text ?? '');
@@ -193,7 +224,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const txt = greetingIn.value.trim();
     if (!txt) return;
 
-    try { await fetch(NEW_URL, { method: 'GET' }); } catch(e) {}
+    // anonymous flag if switch is on
+    const q = (greetingAnon && greetingAnon.checked) ? '?anonymous=1' : '';
+    try { await fetch(`${NEW_URL}${q}`, { method: 'GET' }); } catch(e) {}
 
     overlay.classList.add('animate__fadeOut');
     setTimeout(() => overlay.classList.add('hidden'), 300);
