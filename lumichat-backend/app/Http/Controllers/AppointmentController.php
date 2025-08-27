@@ -19,6 +19,9 @@ class AppointmentController extends Controller
     private const WEEKDAY_MIN = 1; // Monday
     private const WEEKDAY_MAX = 5; // Friday
 
+    /** Optional: minimum minutes before start that a student is allowed to cancel (0 = no cutoff). */
+    private const MIN_CANCEL_MINUTES_BEFORE_START = 0;
+
     /* ----------------------------------------------------------
      |  BOOKING PAGE
      |----------------------------------------------------------*/
@@ -380,6 +383,10 @@ class AppointmentController extends Controller
         return !$conflict;
     }
 
+    /* ----------------------------------------------------------
+     |  CANCEL (Student)
+     |  Rule: Only PENDING and FUTURE appointments may be canceled by the student.
+     |----------------------------------------------------------*/
     public function cancel($id, Request $request)
     {
         $userId = Auth::id();
@@ -393,16 +400,24 @@ class AppointmentController extends Controller
             return back()->withErrors(['error' => 'Appointment not found.']);
         }
 
-        // Guard: already canceled/completed
-        if (in_array($ap->status, ['canceled', 'completed'], true)) {
-            return back()->withErrors(['error' => "This appointment is already {$ap->status}."]);
+        // Hard guards: only pending may be canceled by the student
+        if ($ap->status !== 'pending') {
+            return back()->withErrors(['error' => 'Only pending appointments can be canceled.']);
         }
 
-        // (Optional) guard: don’t allow cancel if already started/past
+        // Past/started guard (and optional cutoff window)
         $now   = now();
-        $start = \Carbon\Carbon::parse($ap->scheduled_at);
+        $start = Carbon::parse($ap->scheduled_at);
+
         if ($start->lte($now)) {
             return back()->withErrors(['error' => 'This appointment has already started/passed and cannot be canceled.']);
+        }
+
+        if (self::MIN_CANCEL_MINUTES_BEFORE_START > 0) {
+            $minsUntil = $now->diffInMinutes($start, false);
+            if ($minsUntil < self::MIN_CANCEL_MINUTES_BEFORE_START) {
+                return back()->withErrors(['error' => 'You can no longer cancel this appointment (cutoff reached).']);
+            }
         }
 
         DB::table('tbl_appointments')
@@ -412,7 +427,8 @@ class AppointmentController extends Controller
                 'updated_at' => now(),
             ]);
 
-        return redirect()->route('appointment.history')
+        return redirect()
+            ->route('appointment.history')
             ->with('status', 'Appointment canceled.');
     }
 }

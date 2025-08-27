@@ -4,6 +4,7 @@
 @section('content')
 <div class="max-w-3xl mx-auto py-8 px-4">
 
+  {{-- Back link --}}
   <a href="{{ route('appointment.history') }}"
      class="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 mb-4">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -13,6 +14,7 @@
   </a>
 
   <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    {{-- Header --}}
     <div class="flex items-start justify-between">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
         Appointment #{{ $appointment->id }}
@@ -33,6 +35,7 @@
       </span>
     </div>
 
+    {{-- Countdown --}}
     @php
       $now   = \Carbon\Carbon::now();
       $start = \Carbon\Carbon::parse($appointment->scheduled_at);
@@ -59,6 +62,7 @@
       </span>
     </div>
 
+    {{-- Details --}}
     <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <h3 class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Counselor</h3>
@@ -81,6 +85,7 @@
       </div>
     </div>
 
+    {{-- Notes --}}
     <div class="mt-6">
       <h3 class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Notes</h3>
       <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/40">
@@ -100,8 +105,18 @@
       </a>
 
       @php
-        $canCancel = !in_array($appointment->status, ['canceled','completed']) && $start->gt($now);
+        // Only allow cancel if it’s still PENDING and in the future.
+        $isFuture = \Carbon\Carbon::parse($appointment->scheduled_at)->gt(now());
+        $canCancel = ($appointment->status === 'pending') && $isFuture;
+
+        // Human-readable reason for disabled state
+        $cannotReason = match (true) {
+          $appointment->status !== 'pending' => 'Only pending appointments can be canceled.',
+          !$isFuture => 'This appointment has already started/passed.',
+          default => 'Cancel not available.',
+        };
       @endphp
+
       @if ($canCancel)
         <form method="POST" action="{{ route('appointment.cancel', $appointment->id) }}"
               onsubmit="return confirmStudentCancel(event, this)">
@@ -112,6 +127,13 @@
             Cancel
           </button>
         </form>
+      @else
+        {{-- Disabled button with tooltip to explain why --}}
+        <button type="button" disabled
+                title="{{ $cannotReason }}"
+                class="inline-flex items-center rounded-lg bg-rose-600 px-4 py-2 text-white opacity-50 cursor-not-allowed">
+          Cancel
+        </button>
       @endif
     </div>
   </div>
@@ -138,5 +160,26 @@ function confirmStudentCancel(e, form) {
   });
   return false;
 }
+
+// Show backend success/errors as SweetAlerts
+document.addEventListener('DOMContentLoaded', () => {
+  const successMsg = @json(session('status'));
+  if (successMsg) {
+    Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: successMsg,
+      timer: 2200,
+      showConfirmButton: false
+    });
+  }
+
+  const pageErrors = @json($errors->all());
+  if (Array.isArray(pageErrors) && pageErrors.length) {
+    const html = '<ul style="text-align:left;margin:0;padding-left:1rem">' +
+                 pageErrors.map(i => `<li>• ${i}</li>`).join('') + '</ul>';
+    Swal.fire({ icon: 'error', title: 'Unable to proceed', html });
+  }
+});
 </script>
 @endpush
