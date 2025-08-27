@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Auth controller for admin login form (same controller you use for student login)
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+
 // Admin controllers
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\CounselorController;
@@ -9,6 +12,26 @@ use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\ChatbotSessionController;
 use App\Http\Controllers\Admin\AppointmentController as AdminAppointmentController;
 
+/*
+|--------------------------------------------------------------------------
+| Public (guest) admin auth routes
+| - These MUST come before the protected admin group
+| - They render the same login view but with admin context
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware('guest')
+    ->group(function () {
+        Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+        Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.post');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Protected admin routes
+|--------------------------------------------------------------------------
+*/
 Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'admin'])
@@ -19,7 +42,7 @@ Route::prefix('admin')
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
         // JSON stats endpoint (polled by the dashboard)
-        // NOTE: only define this ONCE. URL => /admin/dashboard/stats , name => admin.dashboard.stats
+        // URL => /admin/dashboard/stats , name => admin.dashboard.stats
         Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
 
         /* ===================== COUNSELORS ===================== */

@@ -6,57 +6,67 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
-    public function create(): View
+    /** Show login form (role-aware). */
+    public function create(Request $request): View
     {
-        return view('auth.login');
+        // default
+        $loginContext = 'student';
+
+        // quick override for testing: /login?ctx=admin
+        $ctxParam = strtolower((string) $request->query('ctx', ''));
+        if (in_array($ctxParam, ['admin','student'], true)) {
+            $loginContext = $ctxParam;
+        } else {
+            // if URL is /admin/login -> admin
+            if ($request->is('admin') || $request->is('admin/*')) {
+                $loginContext = 'admin';
+            } else {
+                // if redirected from admin page -> admin
+                $intended = (string) $request->session()->get('url.intended', '');
+                $intendedPath = parse_url($intended, PHP_URL_PATH) ?? '';
+                if (Str::startsWith($intendedPath, '/admin')) {
+                    $loginContext = 'admin';
+                }
+            }
+        }
+
+        return view('auth.login', ['loginContext' => $loginContext]);
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
+    /** Handle login. */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'email'    => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'email'    => ['required','string','email'],
+            'password' => ['required','string'],
         ]);
 
-        if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            return back()->withErrors([
-                'email' => 'The provided credentials do not match our records.',
-            ])->onlyInput('email');
+        if (!Auth::attempt($request->only('email','password'), $request->boolean('remember'))) {
+            return back()->withErrors(['email' => 'The provided credentials do not match our records.'])
+                         ->onlyInput('email');
         }
 
         $request->session()->regenerate();
-
         $user = $request->user();
 
-        // Admin or Counselor → force admin dashboard
         if (method_exists($user, 'canAccessAdmin') && $user->canAccessAdmin()) {
             return redirect()->route('admin.dashboard');
         }
 
-        // Student → go to chat (respect intended if any)
         return redirect()->intended(route('chat.index'));
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
+    /** Logout. */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
         return redirect('/');
     }
 }

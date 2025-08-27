@@ -87,8 +87,33 @@
           <div class="font-medium text-gray-900 dark:text-gray-100">Dark Mode</div>
           <div class="text-xs text-gray-500 dark:text-gray-400">Use a darker theme that’s easier on the eyes.</div>
         </div>
-        <input id="darkModeToggle" type="checkbox" name="dark_mode" @checked($settings->dark_mode) class="pretty-toggle">
-      </label>
+        {{-- Tailwind-only Uiverse-style switch (fixed) --}}
+        <label class="relative inline-flex items-center cursor-pointer select-none">
+          <input
+            id="darkModeToggle"
+            type="checkbox"
+            name="dark_mode"
+            @checked($settings->dark_mode)
+            class="sr-only peer"
+            aria-label="Toggle dark mode"
+          >
+          <span
+            class="block w-[3.5em] h-[2em] rounded-full border border-[#414141]
+                  bg-black dark:bg-transparent   {{-- 🔥 Black track in light mode, normal in dark --}}
+                  transition-[box-shadow,border-color,background-color] duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]
+                  relative
+                  peer-checked:border-[#0974f1]
+                  peer-checked:shadow-[0_0_20px_rgba(9,117,241,0.8)]
+                  peer-checked:bg-transparent    {{-- track clears when ON --}}
+                  peer-checked:[&>span]:translate-x-[1.5em]"
+          >
+            <span
+              aria-hidden="true"
+              class="absolute left-[0.2em] top-[0.2em] w-[1.4em] h-[1.4em] rounded-full bg-white
+                    transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
+            ></span>
+          </span>
+        </label>
     </section>
 
     {{-- ================= Support & Feedback ================= --}}
@@ -150,13 +175,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const darkToggle = document.getElementById('darkModeToggle');
   const htmlEl = document.documentElement;
 
-  // Load saved preference
+  // 1) Load saved preference (client-side)
   if (localStorage.getItem('lumichat_dark') === '1') {
     htmlEl.classList.add('dark');
     if (darkToggle) darkToggle.checked = true;
+  } else if (localStorage.getItem('lumichat_dark') === '0') {
+    htmlEl.classList.remove('dark');
+    if (darkToggle) darkToggle.checked = false;
   }
-
-  // Persist + apply immediately
+  // 2) Immediate apply + persist
   darkToggle?.addEventListener('change', () => {
     if (darkToggle.checked) {
       htmlEl.classList.add('dark');
@@ -168,4 +195,5 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
 @endsection

@@ -4,50 +4,15 @@
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
-{{-- Inline styles for the anonymous switch --}}
-<style>
-  .switch{position:relative;display:inline-block;width:50px;height:26px}
-  .checkbox{display:none}
-  .slider{
-    width:100%;height:100%;background-color:rgba(255,255,255,.35);
-    border-radius:20px;overflow:hidden;display:flex;align-items:center;
-    border:2px solid transparent;transition:.25s;box-shadow:0 0 10px 0 rgb(0 0 0 / .25) inset;cursor:pointer
-  }
-  .slider::before{
-    content:'';display:block;width:100%;height:100%;background:#fff;
-    transform:translateX(-24px);border-radius:20px;transition:.25s;box-shadow:0 0 10px 3px rgb(0 0 0 / .25)
-  }
-  .checkbox:checked ~ .slider{background:#6366f1}      /* indigo to match theme */
-  .checkbox:checked ~ .slider::before{transform:translateX(24px)}
-</style>
-
 <div class="chat-container relative">
 
-  {{-- Greeting Overlay --}}
+  {{-- Greeting Overlay (first-time & when "New Chat" is clicked) --}}
   <div id="greeting-overlay"
        class="fixed inset-0 bg-gradient-to-br from-purple-600 via-violet-500 to-indigo-500
               flex flex-col items-center justify-center text-white z-50 px-4
-              animate__animated animate__fadeIn">
+              animate__animated animate__fadeIn {{ $showGreeting ? '' : 'hidden' }}">
 
-    {{-- Back button (top-left) --}}
-    <a href="{{ route('profile.edit') }}"
-       class="absolute top-4 left-4 z-[60] flex items-center gap-2 px-4 py-2
-              bg-white/20 backdrop-blur-sm border border-white/30 rounded-full
-              hover:bg-white/30 transition text-sm text-white shadow-sm">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 18l-6-6 6-6"/>
-      </svg>
-      Back
-    </a>
-
-    {{-- Anonymous switch (top-right) --}}
-    <div class="absolute top-4 right-4 z-[60] flex items-center gap-2">
-      <span class="text-sm font-medium text-white/90">Anonymous</span>
-      <label class="switch">
-        <input id="greeting-anon" type="checkbox" class="checkbox">
-        <div class="slider"></div>
-      </label>
-    </div>
+    {{-- Removed Back button as requested --}}
 
     <img src="{{ asset('images/chatbot.png') }}" alt="Bot" class="w-16 h-16 mb-4 animate__animated animate__zoomIn">
     <h1 class="text-4xl font-extrabold leading-snug text-center mb-6 animate__animated animate__bounceInDown">
@@ -87,7 +52,7 @@
 
   {{-- Chat Panel --}}
   <div id="chat-wrapper"
-       class="chat-panel card-shell rounded-xl overflow-hidden hidden animate__animated animate__slideInRight
+       class="chat-panel card-shell rounded-xl overflow-hidden {{ $showGreeting ? 'hidden' : '' }} animate__animated animate__slideInRight
               flex flex-col w-full max-w-[1040px] h-[calc(100vh-160px)]">
 
     <div class="chat-header flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600
@@ -105,7 +70,7 @@
           <div class="inline-block max-w-xs px-4 py-2 rounded-2xl text-sm
                       {{ $mine ? 'bubble-user animate__animated animate__zoomIn'
                                : 'bubble-ai animate__animated animate__fadeIn' }}">
-            {{ $chat->message }}
+            {!! $mine ? e($chat->message) : $chat->message !!}
           </div>
           <div class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
             {{ \Carbon\Carbon::parse($chat->sent_at)->format('H:i') }}
@@ -139,27 +104,18 @@
 @push('scripts')
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const overlay     = document.getElementById('greeting-overlay');
-  const chatWrap    = document.getElementById('chat-wrapper');
-  const showGreet   = @json($showGreeting ?? false);
-
+  const overlay      = document.getElementById('greeting-overlay');
+  const chatWrap     = document.getElementById('chat-wrapper');
   const greetingForm = document.getElementById('greeting-form');
   const greetingIn   = document.getElementById('greeting-input');
   const greetingBt   = document.getElementById('greeting-send');
-  const greetingAnon = document.getElementById('greeting-anon');   // switch
 
   const messages = document.getElementById('chat-messages');
   const form     = document.getElementById('chat-form');
   const input    = document.getElementById('chat-message');
 
   const STORE_URL = @json(route('chat.store'));
-  const NEW_URL   = @json(route('chat.new'));
-
-  // Initial view
-  setTimeout(() => {
-    if (showGreet) overlay.classList.remove('hidden');
-    else { overlay.classList.add('hidden'); chatWrap.classList.remove('hidden'); }
-  }, 100);
+  const NEW_URL   = @json(route('chat.new')); // kept if you want to trigger greeting from elsewhere
 
   const toggleStartBtn = () => { greetingBt.disabled = !greetingIn.value.trim(); };
   greetingIn.addEventListener('input', toggleStartBtn); toggleStartBtn();
@@ -171,19 +127,19 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="msg-time text-[10px] text-gray-400 dark:text-gray-500 mt-1">${time}</div>
       </div>
     `);
-    messages.lastElementChild.querySelector('.bubble-user').textContent = text; // safe
+    messages.lastElementChild.querySelector('.bubble-user').textContent = text;
     messages.scrollTop = messages.scrollHeight;
     return messages.lastElementChild.querySelector('.msg-time');
   }
 
-  function appendBotBubble(text, time = '') {
+  function appendBotBubble(html, time = '') {
     messages.insertAdjacentHTML('beforeend', `
       <div class="self-start animate__animated animate__fadeIn">
         <div class="inline-block bubble-ai px-4 py-2 rounded-2xl max-w-xs"></div>
         <div class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">${time}</div>
       </div>
     `);
-    messages.lastElementChild.querySelector('.bubble-ai').innerHTML = text; // allows CTA HTML
+    messages.lastElementChild.querySelector('.bubble-ai').innerHTML = html;
     messages.scrollTop = messages.scrollHeight;
   }
 
@@ -224,10 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const txt = greetingIn.value.trim();
     if (!txt) return;
 
-    // anonymous flag if switch is on
-    const q = (greetingAnon && greetingAnon.checked) ? '?anonymous=1' : '';
-    try { await fetch(`${NEW_URL}${q}`, { method: 'GET' }); } catch(e) {}
-
+    // First message should create a new session (controller will create if needed)
     overlay.classList.add('animate__fadeOut');
     setTimeout(() => overlay.classList.add('hidden'), 300);
     chatWrap.classList.remove('hidden');
@@ -239,7 +192,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   greetingBt.addEventListener('click', startFromGreeting);
   greetingForm.addEventListener('submit', (e) => { e.preventDefault(); startFromGreeting(); });
-  greetingIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); startFromGreeting(); } });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();

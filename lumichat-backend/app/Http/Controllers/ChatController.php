@@ -18,45 +18,29 @@ class ChatController extends Controller
      | Risk helpers
      * =========================================================================*/
 
-    /**
-     * Returns 'low' | 'moderate' | 'high'
-     *
-     * Much stricter patterns so phrases like “wanna die”, “unalive”, “wish I were
-     * dead”, “end it all”, etc., get classified correctly.
-     */
     private function evaluateRiskLevel(string $text): string
     {
-        // normalize
         $t = mb_strtolower($text);
         $t = preg_replace('/\s+/u', ' ', $t ?? '');
 
-        // ---------------- HIGH: clear suicidal/self-harm intent or plan
         $high = [
-            // I + (wanna|want to|plan|intend|need|will|gonna) + (die|kill myself|end my life|commit suicide|unalive|disappear|be gone)
             '\bi\s*(?:wanna|want(?:\s*to)?|plan|planning|intend|need|will|gonna)\s*(?:to\s*)?(?:die|kill myself|end (?:it|my life)|commit suicide|unalive|disappear|be gone)\b',
-            // direct ideation/explicit
             '\b(?:kill myself|commit suicide|end it all|no reason to live|life is pointless)\b',
-            // “i wish/want I were/was dead”
             '\bi\s*(?:wish|want)\s*(?:i\s*)?(?:were|was)\s*dead\b',
-            // “i can’t go on / cannot go on”
             '\bi\s*(?:can\'?t|cannot)\s*go on\b',
-            // common method hints
             '\b(?:jump off|overdose|poison myself|hang myself)\b',
-            // self-harm explicit
             '\b(?:self[- ]harm|cut(?:ting)? myself)\b',
         ];
         foreach ($high as $p) {
             if (preg_match('/' . $p . '/iu', $t)) return 'high';
         }
 
-        // Co-occurrence heuristic → HIGH
         $acts   = ['suicide','die','unalive','kill myself','end my life','end it','jump','overdose','poison','cut','disappear','be gone'];
         $intent = ['wanna','want','plan','planning','thinking','feel like','i should','i will','i might','really want','gonna'];
         foreach ($acts as $a) foreach ($intent as $b) {
             if (str_contains($t, $a) && str_contains($t, $b)) return 'high';
         }
 
-        // ---------------- MODERATE: severe distress / self-hate / passive ideation
         $moderate = [
             '\bi\s*(?:hate|loath|despise)\s*myself\b',
             '\b(?:i (?:want|wish) (?:to )?disappear|i (?:don\'?t|do not) want to exist|i wish i wasn\'?t here|i wish i never existed)\b',
@@ -71,9 +55,6 @@ class ChatController extends Controller
         return 'low';
     }
 
-    /**
-     * Crisis HTML (contains {APPOINTMENT_LINK} token).
-     */
     private function crisisMessageWithLink(): string
     {
         $c   = config('services.crisis');
@@ -106,13 +87,29 @@ HTML;
 
     public function index()
     {
-        if (!session('chat_session_id')) {
-            return redirect()->route('chat.new');
+        $userId = Auth::id();
+
+        $hasAnySessions = ChatSession::where('user_id', $userId)->exists();
+        $forceGreeting  = (bool) session()->pull('force_greeting', false);
+
+        // First-time user OR explicitly requested via "New Chat" → show greeting
+        if ($forceGreeting || !$hasAnySessions) {
+            $showGreeting = true;
+            $chats = collect();
+            return view('chat', compact('chats', 'showGreeting'));
         }
 
-        $showGreeting = (bool) session()->pull('show_greeting', false);
+        // Returning user path: ensure we have an active session
+        if (!session('chat_session_id')) {
+            $latest = ChatSession::where('user_id', $userId)->latest('updated_at')->first();
+            if ($latest) {
+                session(['chat_session_id' => $latest->id]);
+            }
+        }
 
-        $chats = Chat::where('user_id', Auth::id())
+        $showGreeting = false;
+
+        $chats = Chat::where('user_id', $userId)
             ->where('chat_session_id', session('chat_session_id'))
             ->orderBy('sent_at')
             ->get()
@@ -129,46 +126,13 @@ HTML;
     }
 
     /**
-     * Starts (or reuses) a session. Accepts ?anonymous=1
+     * "New Chat" → show greeting overlay; create session after first message.
      */
     public function newChat(Request $request)
     {
-        $userId = Auth::id();
-        $anon   = $request->boolean('anonymous', false) ? 1 : 0;
-
-        // reuse existing empty session if any
-        $reuse = ChatSession::where('user_id', $userId)
-            ->whereDoesntHave('chats')
-            ->latest('id')
-            ->first();
-
-        if ($reuse) {
-            if ($anon && (int) $reuse->is_anonymous !== 1) {
-                $reuse->update(['is_anonymous' => 1]);
-            }
-            session(['chat_session_id' => $reuse->id, 'show_greeting' => true]);
-
-            $this->logActivity('chat_session_created', 'New/reused chat session', $reuse->id, [
-                'is_anonymous' => (bool) $reuse->is_anonymous,
-                'reused'       => true,
-            ]);
-
-            return redirect()->route('chat.index');
-        }
-
-        $session = ChatSession::create([
-            'user_id'       => $userId,
-            'topic_summary' => 'Starting conversation...',
-            'is_anonymous'  => $anon,
-            'risk_level'    => 'low',
-        ]);
-
-        session(['chat_session_id' => $session->id, 'show_greeting' => true]);
-
-        $this->logActivity('chat_session_created', 'New chat session started', $session->id, [
-            'is_anonymous' => (bool) $anon,
-            'reused'       => false,
-        ]);
+        // Clear any active session and force the greeting view
+        session()->forget('chat_session_id');
+        session(['force_greeting' => true]);
 
         return redirect()->route('chat.index');
     }
@@ -180,13 +144,14 @@ HTML;
     {
         $request->validate(['message' => 'required|string']);
 
-        // Ensure session exists
         $sessionId = session('chat_session_id');
+
+        // If no active session yet (e.g., coming from greeting), create one now.
         if (!$sessionId) {
             $s = ChatSession::create([
                 'user_id'       => Auth::id(),
                 'topic_summary' => 'Starting conversation...',
-                'is_anonymous'  => 0,
+                'is_anonymous'  => 0, // kept for schema compatibility
                 'risk_level'    => 'low',
             ]);
             $sessionId = $s->id;
@@ -250,7 +215,6 @@ HTML;
                 $session->update(['risk_level' => $new]);
             }
 
-            // Log risk detection on each message
             $this->logActivity('risk_detected', "Risk level: {$msgRisk}", $sessionId, [
                 'risk_level'      => $msgRisk,
                 'message_preview' => Str::limit($text, 120),
@@ -265,7 +229,7 @@ HTML;
             array_unshift($botReplies, $this->crisisMessageWithLink());
         }
 
-        // --- Appointment CTA intent (simple keyword)
+        // --- Appointment CTA intent
         $wantsAppointment = (bool) preg_match(
             '/\b(appoint|appointment|schedule|book|booking|meet|talk)\b.*\b(counsel|counselor|therap|advisor)\b|'
             . '\bsee (?:a )?counselor\b|'
@@ -286,11 +250,9 @@ HTML;
             }
         }
 
-        // --- Appointment CTA signed link replacement
         $signed  = URL::signedRoute('features.enable_appointment');
         $ctaHtml = '<a href="' . $signed . '" class="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition">Book an appointment</a>';
 
-        // Save bot replies & response payload
         $botPayload = [];
         foreach ($botReplies as $reply) {
             if (is_string($reply) && str_contains($reply, '{APPOINTMENT_LINK}')) {
@@ -382,7 +344,7 @@ HTML;
     {
         $ids = array_filter(explode(',', $request->input('ids', '')));
         if ($ids) {
-            ChatSession::whereIn('id', $ids)->where('user_id', Auth::id())->delete();
+            ChatSession::whereIn($ids ? ['id' => $ids] : [])->where('user_id', Auth::id())->delete();
         }
         return redirect()->route('chat.history')->with('status', 'Selected sessions deleted');
     }
@@ -390,14 +352,10 @@ HTML;
     public function activate($id)
     {
         $session = ChatSession::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
-        session(['chat_session_id' => $session->id, 'show_greeting' => false]);
+        session(['chat_session_id' => $session->id]);
         $session->touch();
         return redirect()->route('chat.index')->with('status', 'session-activated');
     }
-
-    /* =========================================================================
-     | Internal helper: safe ActivityLog writer
-     * =========================================================================*/
 
     private function logActivity(string $event, string $description, int $sessionId, ?array $meta = null): void
     {
@@ -411,7 +369,7 @@ HTML;
                 'meta'         => $meta,
             ]);
         } catch (\Throwable $e) {
-            // best-effort only; never break chat flow
+            // best-effort only
         }
     }
 }
