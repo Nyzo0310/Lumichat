@@ -1,0 +1,637 @@
+{{-- resources/views/layouts/admin.blade.php --}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ trim($__env->yieldContent('title')) ?: 'Admin • Dashboard' }}</title>
+  <!-- CSRF for AJAX (bell + index page mark-read) -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
+  {{-- SweetAlert2 (same version as student side) --}}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.4/dist/sweetalert2.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.4/dist/sweetalert2.all.min.js" defer></script>
+
+  @vite(['resources/css/app.css','resources/js/app.js'])
+  @include('layouts.partials.favicons')
+
+  <style>
+    :root{
+      --rail-expanded: 18rem;   /* 288px */
+      --rail-collapsed: 84px;   /* compact width */
+      --header-h: 56px;
+    }
+    html, body { height: 100%; }
+    body{ -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+    .no-scroll{ overflow: hidden; }
+
+    #adminSidebar{ width: var(--rail-expanded); transition: width .25s ease, transform .25s ease; }
+    #adminMain{ transition: padding .25s ease; }
+    @media (min-width: 1024px){
+      #adminMain{ padding-left: var(--rail-expanded); }
+      .admin-collapsed #adminMain{ padding-left: var(--rail-collapsed); }
+    }
+    .admin-collapsed #adminSidebar{ width: var(--rail-collapsed); }
+
+    .rail-header{ height: var(--header-h); }
+
+    @media (min-width:1024px){
+      .admin-collapsed .brand-text,
+      .admin-collapsed .nav-label,
+      .admin-collapsed .hide-when-collapsed{ display: none !important; }
+      .admin-collapsed #railClose{ display: none !important; }
+      .admin-collapsed .nav-item{ justify-content: center; }
+    }
+
+    #railOpen{ display:inline-flex; }
+    @media (min-width:1024px){
+      body:not(.admin-collapsed) #railOpen{ display:none; }
+      body.admin-collapsed #railOpen{ display:inline-flex; }
+    }
+    body.mobile-rail-open #railOpen{ display:none; }
+
+    .nav-item.is-active::before{
+      content:""; position:absolute; left:10px; top:50%;
+      transform:translateY(-50%); width:4px; height:22px; border-radius:999px;
+      background:rgba(255,255,255,.92);
+    }
+
+    #adminSidebar nav a.nav-item > span > img{
+      -webkit-filter: invert(1) brightness(1000%) saturate(0) contrast(100%) !important;
+              filter: invert(1) brightness(1000%) saturate(0) contrast(100%) !important;
+    }
+
+    #railScroll{
+      height: calc(100vh - var(--header-h));
+      overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.7) transparent;
+    }
+    @supports (height: 100dvh){
+      #railScroll{ height: calc(100dvh - var(--header-h)); }
+    }
+    #railScroll::-webkit-scrollbar{ width: 10px; }
+    #railScroll::-webkit-scrollbar-thumb{
+      background: rgba(255,255,255,.65);
+      border-radius: 9999px;
+      border: 2px solid rgba(255,255,255,.25);
+      background-clip: padding-box;
+    }
+    #railScroll::-webkit-scrollbar-track{ background: transparent; }
+    @media (min-width:1024px){
+      .admin-collapsed #railScroll{ overflow: hidden; }
+    }
+
+    #adminSidebar{ overflow-x: clip; }
+
+    .nav-item .rail-tip{
+      position:absolute; inset:auto auto 50% 100%;
+      transform: translateY(50%) translateX(8px);
+      padding:.35rem .6rem; font-size:.75rem; white-space:nowrap;
+      background:#0f172a; color:#fff; border-radius:.5rem;
+      box-shadow:0 10px 24px rgba(15,23,42,.35);
+      opacity:0; pointer-events:none;
+      transition:opacity .12s ease, transform .12s ease;
+    }
+    @media (min-width:1024px){
+      .admin-collapsed .nav-item:hover .rail-tip{
+        opacity:1; transform: translateY(50%) translateX(12px);
+      }
+    }
+  </style>
+
+  {{-- === SweetAlert global theme (same as student) === --}}
+  <style id="lumi-swal-theme">
+    .swal2-container.swal2-backdrop-show{
+      background:rgba(15,23,42,.55)!important;
+      backdrop-filter:blur(4px) saturate(110%);
+    }
+    .swal2-container.swal2-top-start,
+    .swal2-container.swal2-top,
+    .swal2-container.swal2-top-end,
+    .swal2-container.swal2-bottom-start,
+    .swal2-container.swal2-bottom,
+    .swal2-container.swal2-bottom-end{
+      background:transparent!important;
+      backdrop-filter:none!important;
+      pointer-events:none!important;
+      z-index:2147483000!important;
+    }
+    .swal2-container .swal2-popup{ pointer-events:auto!important; }
+    .swal2-container.swal2-top-end{
+      padding-top:max(12px, env(safe-area-inset-top))!important;
+      padding-right:max(12px, env(safe-area-inset-right))!important;
+      padding-bottom:12px!important;
+      padding-left:12px!important;
+    }
+
+    .swal2-popup:not(.swal2-toast){
+      background:#fff!important;
+      border-radius:22px!important;
+      padding:28px 32px!important;
+      box-shadow:
+        0 40px 80px -20px rgba(2,6,23,.35),
+        0 0 0 1px rgba(2,6,23,.05),
+        0 30px 60px rgba(109,40,217,.08)!important;
+      max-width:680px;
+    }
+    .dark .swal2-popup:not(.swal2-toast){
+      background:rgba(17,24,39,.96)!important;
+      color:#e5e7eb!important;
+    }
+    .swal2-popup:not(.swal2-toast) .swal2-title{
+      margin:12px 0 0!important;
+      font-weight:700;
+      font-size:26px!important;
+      letter-spacing:.2px;
+      text-align:center;
+      color:#0f172a;
+    }
+    .dark .swal2-popup:not(.swal2-toast) .swal2-title{ color:#f8fafc; }
+    .swal2-popup:not(.swal2-toast) .swal2-html-container{
+      margin-top:6px!important;
+      font-size:15px!important;
+      color:#475569!important;
+    }
+    .dark .swal2-popup:not(.swal2-toast) .swal2-html-container{
+      color:#cbd5e1!important;
+    }
+    .swal2-popup:not(.swal2-toast) .swal2-actions{
+      margin-top:22px!important;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .swal2-styled{
+      border-radius:14px!important;
+      padding:10px 18px!important;
+      font-weight:700!important;
+      box-shadow:none!important;
+    }
+    .swal2-confirm{
+      background:linear-gradient(90deg,#7c3aed,#6366f1)!important;
+      color:#fff!important;
+      box-shadow:0 10px 24px rgba(99,102,241,.35)!important;
+    }
+    .swal2-cancel,.swal2-deny{
+      background:#fff!important;
+      color:#334155!important;
+      border:1px solid #e5e7eb!important;
+    }
+    .dark .swal2-cancel,.dark .swal2-deny{
+      background:#1f2937!important;
+      color:#e5e7eb!important;
+      border-color:#334155!important;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+{{-- ===== SIDEBAR / RAIL ===== --}}
+<aside id="adminSidebar"
+  class="fixed inset-y-0 left-0 z-40 -translate-x-full lg:translate-x-0 text-white shadow-xl">
+
+  {{-- Brand --}}
+  <div class="rail-header px-4 flex items-center justify-between border-b border-white/20">
+    <div class="flex items-center gap-2">
+      <img src="{{ asset('images/chatbot.png') }}"
+           class="w-9 h-9 rounded-full ring-2 ring-white/30 object-cover"
+           alt="LumiCHAT">
+      <span class="brand-text font-semibold tracking-wide">LumiCHAT</span>
+    </div>
+
+    {{-- X: collapse on desktop / close on mobile --}}
+    <button id="railClose"
+            class="p-2 rounded-md hover:bg-white/10 focus:outline-none"
+            aria-label="Collapse/Close sidebar"
+            title="Collapse (desktop) / Close (mobile)">
+      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  {{-- Nav --}}
+  <nav class="h-[calc(100vh-var(--header-h))] flex flex-col">
+    <div id="railScroll" class="px-3 py-3 grow">
+
+      <p class="px-3 text-[11px] uppercase tracking-wider/relaxed opacity-90 nav-label">Main</p>
+
+      {{-- Dashboard --}}
+      <a href="{{ route('admin.dashboard') }}"
+         aria-current="{{ request()->routeIs('admin.dashboard') ? 'page' : 'false' }}"
+         class="nav-item group relative mt-2 px-3 py-2.5 ring-1 ring-transparent
+                hover:bg-white/10 hover:ring-white/10
+                {{ request()->routeIs('admin.dashboard') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+        <span class="inline-flex w-10 h-10 items-center justify-center">
+          <img src="{{ asset('images/icons/home.png') }}" class="sidebar-icon" alt="">
+        </span>
+        <span class="nav-label font-medium">Dashboard Overview</span>
+        <span class="rail-tip">Dashboard Overview</span>
+      </a>
+
+      {{-- Counselor --}}
+      <a href="{{ route('admin.counselors.index') }}"
+         aria-current="{{ request()->routeIs('admin.counselors.*') ? 'page' : 'false' }}"
+         class="nav-item group relative mt-1.5 px-3 py-2.5 ring-1 ring-transparent
+                hover:bg-white/10 hover:ring-white/10
+                {{ request()->routeIs('admin.counselors.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+        <span class="inline-flex w-10 h-10 items-center justify-center">
+          <img src="{{ asset('images/icons/counselor.png') }}" class="sidebar-icon" alt="">
+        </span>
+        <span class="nav-label font-medium">Counselor</span>
+        <span class="rail-tip">Counselor</span>
+      </a>
+
+      <p class="mt-4 px-3 text-[11px] uppercase tracking-wider/relaxed opacity-90 nav-label">Student Management</p>
+
+      {{-- Student Records --}}
+      <a href="{{ route('admin.students.index') }}"
+         aria-current="{{ request()->routeIs('admin.students.*') ? 'page' : 'false' }}"
+         class="nav-item group relative mt-1.5 px-3 py-2.5 ring-1 ring-transparent
+                hover:bg-white/10 hover:ring-white/10
+                {{ request()->routeIs('admin.students.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+        <span class="inline-flex w-10 h-10 items-center justify-center">
+          <img src="{{ asset('images/icons/user.png') }}" class="sidebar-icon" alt="">
+        </span>
+        <span class="nav-label font-medium">Student Records</span>
+        <span class="rail-tip">Student Records</span>
+      </a>
+
+      {{-- Appointments --}}
+      <a href="{{ route('admin.appointments.index') }}"
+         aria-current="{{ request()->routeIs('admin.appointments.*') ? 'page' : 'false' }}"
+         class="nav-item group relative mt-1.5 px-3 py-2.5 ring-1 ring-transparent
+                hover:bg-white/10 hover:ring-white/10
+                {{ request()->routeIs('admin.appointments.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+        <span class="inline-flex w-10 h-10 items-center justify-center">
+          <img src="{{ asset('images/icons/appointment.png') }}" class="sidebar-icon" alt="">
+        </span>
+        <span class="nav-label font-medium">Appointments</span>
+        <span class="rail-tip">Appointments</span>
+      </a>
+
+      <p class="mt-4 px-3 text-[11px] uppercase tracking-wider/relaxed opacity-90 nav-label">Reports</p>
+
+      {{-- Counselor Logs --}}
+      <a href="{{ route('admin.counselor-logs.index') }}"
+         aria-current="{{ request()->routeIs('admin.counselor-logs.*') ? 'page' : 'false' }}"
+         class="nav-item group relative mt-1.5 px-3 py-2.5 ring-1 ring-transparent
+                hover:bg-white/10 hover:ring-white/10
+                {{ request()->routeIs('admin.counselor-logs.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+        <span class="inline-flex w-10 h-10 items-center justify-center">
+          <img src="{{ asset('images/icons/logs.png') }}" class="sidebar-icon" alt="">
+        </span>
+        <span class="nav-label font-medium">Counselor Logs</span>
+        <span class="rail-tip">Counselor Logs</span>
+      </a>
+
+      {{-- Chatbot Sessions --}}
+      <a href="{{ route('admin.chatbot-sessions.index') }}"
+        aria-current="{{ request()->routeIs('admin.chatbot-sessions.*') ? 'page' : 'false' }}"
+        class="nav-item group relative mt-1.5 px-3 py-2.5 ring-1 ring-transparent
+                hover:bg-white/10 hover:ring-white/10
+                {{ request()->routeIs('admin.chatbot-sessions.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+        <span class="inline-flex w-10 h-10 items-center justify-center">
+          <img src="{{ asset('images/icons/chatbot-session.png') }}" class="sidebar-icon" alt="">
+        </span>
+        <span class="nav-label font-medium">Chatbot Sessions</span>
+        <span class="rail-tip">Chatbot Sessions</span>
+
+        @if(($adminHighRiskCount ?? 0) > 0)
+          <span
+            class="absolute -top-1.5 right-3 min-w-[1.45rem] px-1.5 py-[2px]
+                  rounded-full text-[11px] font-semibold
+                  bg-rose-500 text-white flex items-center justify-center
+                  shadow-sm ring-1 ring-rose-300/70">
+            +{{ $adminHighRiskCount > 9 ? '9' : $adminHighRiskCount }}
+          </span>
+        @endif
+      </a>
+
+      <p class="mt-4 px-3 text-[11px] uppercase tracking-wider/relaxed opacity-90 nav-label">Analytics</p>
+
+      {{-- Case Form Summary --}}
+      <a href="{{ route('admin.case-notes.index') }}"
+        aria-current="{{ request()->routeIs('admin.case-notes.*') ? 'page' : 'false' }}"
+        class="nav-item group relative mt-1.5 px-3 py-2.5 ring-1 ring-transparent
+                hover:bg-white/10 hover:ring-white/10
+                {{ request()->routeIs('admin.case-notes.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+        <span class="inline-flex w-10 h-10 items-center justify-center">
+          <img src="{{ asset('images/icons/casenote.png') }}" class="sidebar-icon" alt="">
+        </span>
+        <span class="nav-label font-medium">Case Form Summary</span>
+        <span class="rail-tip">Case Form Summary</span>
+      </a>
+
+      {{-- Course Analytics --}}
+      <a href="{{ route('admin.course-analytics.index') }}"
+        aria-current="{{ request()->routeIs('admin.course-analytics.*') ? 'page' : 'false' }}"
+        class="nav-item group relative mt-1.5 px-3 py-2.5 ring-1 ring-transparent
+                hover:bg-white/10 hover:ring-white/10
+                {{ request()->routeIs('admin.course-analytics.*') ? 'is-active bg-white/15 ring-white/10' : '' }}">
+        <span class="inline-flex w-10 h-10 items-center justify-center">
+          <img src="{{ asset('images/icons/graduate.png') }}" class="sidebar-icon" alt="">
+        </span>
+        <span class="nav-label font-medium">Course Summary</span>
+        <span class="rail-tip">Course Summary</span>
+      </a>
+    </div>
+
+    {{-- Logout — visible only when rail is expanded --}}
+    <div class="px-3 py-3 border-t border-white/15 hide-when-collapsed">
+      <form method="POST" action="{{ route('logout') }}" data-lumi-logout="1">
+        @csrf
+        <button type="submit" class="lumi-logout-btn">
+            <img src="{{ asset('images/icons/logout.png') }}" alt="" class="sidebar-icon logout-icon">
+            <span class="font-medium">Logout</span>
+        </button>
+      </form>
+    </div>
+  </nav>
+</aside>
+
+{{-- Mobile scrim --}}
+<div id="sidebarScrim" class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm hidden lg:hidden"></div>
+
+{{-- ===== MAIN ===== --}}
+<div id="adminMain" class="min-h-screen">
+  {{-- Top bar --}}
+  <header class="sticky top-0 z-20 h-[var(--header-h)] bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="h-full max-w-7xl mx-auto px-4 flex items-center justify-between">
+      {{-- LEFT cluster --}}
+      <div class="flex items-center gap-3">
+        {{-- Hamburger --}}
+        <button id="railOpen" class="p-2 rounded-md hover:bg-slate-100" aria-label="Open sidebar" title="Open sidebar">
+          <svg class="w-6 h-6 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <h1 class="text-lg font-semibold">@yield('page_title','Dashboard')</h1>
+      </div>
+
+      @php
+        $adminInitials = '';
+        if (Auth::check()) {
+          $parts = preg_split('/\s+/', trim(Auth::user()->name ?? ''));
+          $adminInitials = strtoupper(collect($parts)->take(2)->map(fn($s)=>mb_substr($s,0,1))->implode(''));
+        }
+      @endphp
+
+      {{-- RIGHT cluster (bell + profile) --}}
+      <div class="flex items-center gap-3">
+        {{-- 🔔 Notification bell (ADMIN routes) --}}
+        @auth
+          <x-notification-bell
+            :indexRoute="route('admin.notifications.index')"
+            :feedRoute="route('admin.notifications.feed')"
+            :markRoute="route('admin.notifications.mark', ['id' => ':id'])"
+            :markAllRoute="route('admin.notifications.mark_all')"
+          />
+        @endauth
+
+        {{-- Profile chip --}}
+        <div class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-2 py-1.5 shadow-sm">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-xs font-bold">
+            {{ $adminInitials ?: 'A' }}
+          </div>
+          <div class="leading-tight pr-1">
+            <div class="text-sm font-semibold text-slate-800">
+              {{ auth()->user()->name ?? 'Master Admin' }}
+            </div>
+            <div class="text-[11px] text-slate-500">Admin</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    @yield('content')
+  </main>
+</div>
+
+<script>
+  (function () {
+    const body       = document.body;
+    const sidebar    = document.getElementById('adminSidebar');
+    const scrim      = document.getElementById('sidebarScrim');
+    const openBtn    = document.getElementById('railOpen');
+    const closeBtn   = document.getElementById('railClose');
+    const mqDesktop  = window.matchMedia('(min-width: 1024px)');
+    const LS_KEY     = 'adminSidebarCollapsed';
+    const SCROLL_KEY = 'adminSidebarScroll';
+    const railScroll = document.getElementById('railScroll');
+
+    const isDesktop = () => mqDesktop.matches;
+
+    function setCollapsed(on) {
+      if (on) {
+        body.classList.add('admin-collapsed');
+        localStorage.setItem(LS_KEY, '1');
+      } else {
+        body.classList.remove('admin-collapsed');
+        localStorage.setItem(LS_KEY, '0');
+      }
+    }
+    const getCollapsed = () => localStorage.getItem(LS_KEY) === '1';
+
+    /* ========== Mobile open / close ========== */
+    function openMobile(){
+      sidebar.classList.remove('-translate-x-full');
+      scrim.classList.remove('hidden');
+      body.classList.add('no-scroll');
+      body.classList.add('mobile-rail-open');
+    }
+    function closeMobile(){
+      sidebar.classList.add('-translate-x-full');
+      scrim.classList.add('hidden');
+      body.classList.remove('no-scroll');
+      body.classList.remove('mobile-rail-open');
+    }
+
+    /* Buttons */
+    openBtn?.addEventListener('click', () => {
+      if (isDesktop()) {
+        if (getCollapsed()) setCollapsed(false);   // expand on desktop
+      } else {
+        openMobile();
+      }
+    });
+
+    closeBtn?.addEventListener('click', () => {
+      if (isDesktop()) {
+        setCollapsed(true);                        // collapse on desktop
+      } else {
+        closeMobile();                             // close overlay on mobile
+      }
+    });
+
+    scrim?.addEventListener('click', closeMobile);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !isDesktop()) closeMobile();
+    });
+
+    /* ========== Init per viewport ========== */
+    function applyMode(){
+      if (isDesktop()){
+        body.classList.remove('mobile-rail-open');
+        sidebar.classList.remove('-translate-x-full');
+        scrim.classList.add('hidden');
+        body.classList.remove('no-scroll');
+        setCollapsed(getCollapsed());              // restore saved state
+      } else {
+        sidebar.classList.add('-translate-x-full'); // hidden by default on mobile
+        body.classList.remove('admin-collapsed');   // mobile uses full rail
+        body.classList.remove('mobile-rail-open');
+      }
+    }
+    mqDesktop.addEventListener('change', applyMode);
+    applyMode();
+
+    /* ========== Sidebar scroll behavior ========== */
+    function setupSidebarScroll(){
+      if (!railScroll) return;
+
+      // 1) Restore last saved scroll position
+      const saved = localStorage.getItem(SCROLL_KEY);
+      if (saved !== null) {
+        const y = parseInt(saved, 10);
+        if (!isNaN(y)) {
+          railScroll.scrollTop = y;
+        }
+      }
+
+      // 2) Make sure active nav item is visible
+      const active = railScroll.querySelector('a.nav-item.is-active');
+      if (active) {
+        const cRect = railScroll.getBoundingClientRect();
+        const aRect = active.getBoundingClientRect();
+
+        if (aRect.top < cRect.top || aRect.bottom > cRect.bottom) {
+          active.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        }
+      }
+
+      // 3) Save scroll before leaving page
+      window.addEventListener('beforeunload', () => {
+        localStorage.setItem(SCROLL_KEY, String(railScroll.scrollTop));
+      });
+
+      // 4) Also save when clicking any nav item
+      const navLinks = railScroll.querySelectorAll('a.nav-item');
+      navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          localStorage.setItem(SCROLL_KEY, String(railScroll.scrollTop));
+        });
+      });
+    }
+
+    setupSidebarScroll();
+  })();
+</script>
+
+{{-- ==== Wide SweetAlert “Appointment booked!” (global) ==== --}}
+<style>
+  /* compact success modal */
+  .swal-compact .swal2-html-container{ text-align: left !important; padding: 18px 24px !important; }
+  .appt-compact{ font-size: 14.5px; line-height: 1.45; max-width: 980px; margin: 0 auto; }
+  .appt-compact .kv-grid{
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 18px;
+    padding: 8px 0; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; margin: 6px 0 12px;
+  }
+  @media (max-width: 1100px){ .appt-compact .kv-grid{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px){ .appt-compact .kv-grid{ grid-template-columns: 1fr; } }
+  .appt-compact .kv{ display:flex; gap:6px; white-space:nowrap; }
+  .appt-compact .kv .label{ font-weight:600; color:#111827; }
+  .appt-compact .kv .value{ color:#374151; }
+
+  .swal-wide.swal2-popup{ width: min(92vw, 760px) !important; padding: 0 !important; border-radius: 18px !important; box-shadow: 0 30px 60px rgba(2,6,23,.25); }
+  .swal-wide .swal2-title{ margin: 18px 22px 0 !important; font-size: 22px !important; font-weight: 800 !important; color: #0f172a !important; }
+  .swal-wide .swal2-html-container{ margin: 0 !important; padding: 16px 22px 22px !important; text-align: left !important; }
+  .swal-wide .swal2-actions{ margin: 0 !important; padding: 16px 22px 22px !important; }
+
+  .swal-field{ width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: .55rem .75rem; }
+  .swal-field:focus{ outline: 0; box-shadow: 0 0 0 3px rgba(79,70,229,.25); border-color: #c7d2fe; }
+
+  .time-grid{ display:grid; gap:.5rem; grid-template-columns:repeat(3,minmax(0,1fr)); }
+  @media (min-width:640px){ .time-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); } }
+  .time-btn{ display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border:1px solid #e2e8f0; background:#fff; color:#0f172a;
+    padding:.55rem .6rem; border-radius:12px; font-size:.9rem; line-height:1.1; font-weight:600;
+    transition: transform .06s ease, border-color .12s ease, background .12s ease; }
+  .time-btn:hover{ background:#EEF2FF; border-color:#C7D2FE; }
+  .time-btn.is-active{ box-shadow:0 0 0 3px rgba(79,70,229,.35); border-color:#a5b4fc; }
+  .time-btn:disabled{ opacity:.45; background:#f8fafc; cursor:not-allowed; }
+  .time-cap{ margin-top:.15rem; font-size:.72rem; opacity:.75; font-weight:500; }
+  .tiny-hint{ font-size:.78rem; color:#64748b; }
+</style>
+
+<script>
+  async function showBookedSuccess(html){
+    await Swal.fire({
+      icon: 'success',
+      title: 'Appointment booked!',
+      html,
+      customClass: { popup: 'swal-success' },
+      showCloseButton: true,
+      confirmButtonText: 'OK',
+    });
+  }
+
+  // === Premium logout confirmation for admin (same as student) ===
+  (function () {
+    const forms = document.querySelectorAll('form[data-lumi-logout="1"]');
+    if (!forms.length) return;
+
+    forms.forEach(form => {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        if (typeof Swal === 'undefined') {
+          form.submit();
+          return;
+        }
+
+        const iconHtml = `
+              <path d="M12 7v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+              <circle cx="12" cy="16.5" r="1.2" fill="currentColor"></circle>
+            </svg>
+          </div>
+        `;
+
+        Swal.fire({
+          title: 'Sign out of LumiCHAT?',
+          html: `
+            ${iconHtml}
+            <p class="mt-2 text-[14px] text-slate-600 dark:text-slate-300">
+               You’ll be signed out from the admin panel on this device. All student records, reports, and chatbot sessions will remain safely stored in LumiCHAT.
+            </p>
+          `,
+          focusConfirm: false,
+          showCancelButton: true,
+          showCloseButton: true,
+          confirmButtonText: 'Logout',
+          cancelButtonText: 'Stay signed in',
+          reverseButtons: true,
+          customClass: {
+            popup: 'swal2-logout-popup',
+            confirmButton: 'swal2-logout-confirm',
+            cancelButton: 'swal2-logout-cancel'
+          }
+        }).then(result => {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
+      });
+    });
+  })();
+</script>
+
+@stack('scripts')
+</body>
+</html>
